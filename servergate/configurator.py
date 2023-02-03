@@ -1,37 +1,16 @@
-# -*- coding: utf-8 -*-
-
-import re
-
 import bs4
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from modules.parser_tools import *
-from modules.parser_dataclasses import *
+from modules.parser import *
 from bs4 import BeautifulSoup
 
 
-class Configurator:
-    def __init__(self, webdriver_path: str = None, launch=True):
-        if webdriver_path is not None and launch:
-            from selenium.webdriver.support.ui import Select  # noqa
-            from selenium.webdriver.common.by import By  # noqa
-            from selenium.webdriver.chrome.service import Service  # noqa
-            from selenium.webdriver.chrome.options import Options  # noqa
-            from selenium import webdriver  # noqa
+class Configurator(AbstractConfigurator):
+    def __init__(self, webdriver_path: str = None, launch=False):
+        super().__init__(webdriver_path, launch)
 
-            options = Options()
-            options.page_load_strategy = 'eager'
-            options.add_argument("window-size=1800,1000")
-            try:
-                self.driver = webdriver.Chrome(service=Service(webdriver_path), options=options)
-            except Exception as e:
-                print("ERROR\nОбновите ваш chromedriver драйвер!\nERROR\n")
-                print(e)
-                import os
-                os.system("pause")
-                exit(-1)
-
-    def get_config_components(self, servers: list[Server]):
+    @staticmethod
+    def get_config_components(servers: list[Server]) -> (list[Server], list[Component]):
         servers_with_config = list()
         all_components = list()
         try:
@@ -41,22 +20,22 @@ class Configurator:
                     continue
 
                 result = selenium_try_to_get_max_5x(
-                    driver=self.driver,
-                    URL=server.config_url,
+                    driver=Configurator.driver,
+                    url=server.config_url,
                     lambda_condition=lambda tag: tag.find(class_="main").find(class_="total-value")
                 )
                 if result is not None:
-                    self.driver = result
+                    Configurator.driver = result
                 else:
                     continue
 
-                html = BeautifulSoup(self.driver.page_source, "lxml")
+                html = BeautifulSoup(Configurator.driver.page_source, "lxml")
                 main = html.body.find("main", class_="main")
 
-                configs = self.get_other_configs(main)
+                configs = Configurator.get_other_configs(main)
 
                 for i, config in enumerate(configs):
-                    name = self.get_server_name(main)
+                    name = Configurator.get_server_name(main)
                     if len(configs) > 1:
                         try:
                             config_id = config.find("input", {"class": 'item-chassi', "id": True}).attrs['id']
@@ -68,7 +47,7 @@ class Configurator:
                                 try:
                                     soup = BeautifulSoup(html.page_source, "lxml")
                                     soup_main = soup.find("main")
-                                    soup_name = self.get_server_name(soup_main)
+                                    soup_name = Configurator.get_server_name(soup_main)
                                     soup_name = format_name(soup_name)
                                     if config_name.lower() in soup_name.lower():
                                         return True
@@ -79,7 +58,7 @@ class Configurator:
 
                             xpath = r"""//main//section//div[@class='container']//div[@class='conf-tabs-data']//div[@class='conf-section conf-section--chassi is-open']//ul[@class='conf-section__list']//li""" + f"[{str(i + 1)}]"
 
-                            config_tag = self.driver.find_element(By.XPATH, xpath)
+                            config_tag = Configurator.driver.find_element(By.XPATH, xpath)
                             span_input_tag = config_tag.find_element(By.XPATH,
                                                                      xpath + "//label[@class='radio']//span[@class='radio__label']")
                             k = 0
@@ -88,9 +67,9 @@ class Configurator:
                                 time.sleep(2)
                                 WebDriverWait(config_tag, 15).until(lambda word: is_page_loaded)
 
-                                html = BeautifulSoup(self.driver.page_source, "lxml")
+                                html = BeautifulSoup(Configurator.driver.page_source, "lxml")
                                 main = html.body.find("main", class_="main")
-                                name = self.get_server_name(main)
+                                name = Configurator.get_server_name(main)
                                 if config_name.lower() in name.lower():
                                     break
                                 k += 1
@@ -101,7 +80,7 @@ class Configurator:
                             continue
 
                     print(name)
-                    price = self.get_server_price(main)
+                    price = Configurator.get_server_price(main)
                     print("   ", price)
 
                     new_server = Server(
@@ -115,9 +94,9 @@ class Configurator:
                         generation=server.generation,
                         units=server.units
                     )
-                    categories_html = self.get_config_components_categories_html(main)
+                    categories_html = Configurator.get_config_components_categories_html(main)
 
-                    cfg_components = self.get_components_from_categories(categories_html, new_server)
+                    cfg_components = Configurator.get_components_from_categories(categories_html, new_server)
                     all_components += cfg_components
                     new_server.components = cfg_components
 
@@ -130,7 +109,7 @@ class Configurator:
         except Exception as e:
             print(e)
         finally:
-            self.driver.close()
+            Configurator.driver.close()
             return servers_with_config + [s for s in servers if s.category > 3], all_components
 
     @staticmethod

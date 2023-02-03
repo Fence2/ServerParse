@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import json
 import pickle
 from pathlib import Path
@@ -7,7 +5,7 @@ from pathlib import Path
 import servergate.catalog
 import servergate.configurator
 import servergate.data_prettify
-from modules.parser_tools import *
+from modules.parser import *
 
 
 class Parser:
