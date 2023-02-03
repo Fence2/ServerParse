@@ -1,10 +1,4 @@
-# -*- coding: utf-8 -*-
-
-import re
-
-import bs4
-from modules.parser_tools import *
-from modules.parser_dataclasses import *
+from modules.parser import *
 from nord_server.constants import *
 from bs4 import BeautifulSoup
 

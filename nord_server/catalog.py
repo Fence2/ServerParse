@@ -1,7 +1,4 @@
-import re
-
-from modules.parser_tools import *
-from modules.parser_dataclasses import *
+from modules.parser import *
 from .constants import *
 from bs4 import BeautifulSoup
 

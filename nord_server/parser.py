@@ -2,12 +2,11 @@
 
 import json
 import pickle
-from pathlib import Path
-
 import nord_server.catalog
 import nord_server.configurator
 import nord_server.data_prettify
-from modules.parser_tools import *
+from pathlib import Path
+from modules.parser import *
 
 
 class Parser:

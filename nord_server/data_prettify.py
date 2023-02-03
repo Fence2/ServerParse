@@ -1,14 +1,11 @@
-import re
-
-from modules.parser_tools import *
-from modules.parser_dataclasses import *
+from modules.parser import *
 
 
 def prettify_components(components):
     for comp in components:
         # Корректировка RAM
         if comp.category.lower() == "оперативная память":
-            prettify_ram(comp)
+            prettify_ram(comp, nord_server=True)
 
     return components
 
@@ -44,7 +41,7 @@ def prettify_servers(servers):
         server_ddr = None
         for comp in server.components:
             if comp.category.lower() == "оперативная память":
-                prettify_ram(comp)
+                prettify_ram(comp, nord_server=True)
             if comp.category.lower() == 'оперативная память':
                 ddr = search_from_pattern(Patterns.RAM.ddr, comp.name)
                 if ddr is None:
