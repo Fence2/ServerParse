@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import json
 import pickle
 from pathlib import Path
@@ -7,11 +5,11 @@ from pathlib import Path
 import westcomp.catalog
 import westcomp.configurator
 import westcomp.data_prettify
-from modules.parser_tools import *
+from modules.parser import *
 
 
 class Parser:
-    def __init__(self, work_folder, webdriver_path_if_needed=None):
+    def __init__(self, work_folder, webdriver_path=None, catalog_selenium=False, config_selenium=False):
         self.work_folder = work_folder
         self.components_file_bin = work_folder / "components.bin"
         self.components_file_json = work_folder / "components.json"
@@ -19,7 +17,10 @@ class Parser:
         self.servers_with_conf_list_bin = work_folder / "servers_confs.bin"
         self.configs_components_bin = work_folder / "configs_components.bin"
 
-        self.webdriver_path = webdriver_path_if_needed
+        self.webdriver_path = webdriver_path
+        self.catalog_selenium = catalog_selenium
+        self.config_selenium = config_selenium
+
 
     def start(
             self,
@@ -38,7 +39,7 @@ class Parser:
             # Комплектующие: Получение
             print("Комплектующие: Получение")
 
-            catalog = westcomp.catalog.Catalog()
+            catalog = westcomp.catalog.Catalog(webdriver_path=self.webdriver_path, launch=self.catalog_selenium)
 
             components = catalog.get_components()
 
@@ -60,7 +61,7 @@ class Parser:
         if get_new_servers_list:
             # Серверы: Получение
             print("Серверы: Получение")
-            catalog = westcomp.catalog.Catalog(self.webdriver_path, False) if catalog is None else catalog
+            catalog = westcomp.catalog.Catalog(webdriver_path=self.webdriver_path, launch=self.catalog_selenium) if catalog is None else catalog
             servers = catalog.get_servers()
             # print(*servers, sep="\n")
 
@@ -76,7 +77,7 @@ class Parser:
                     servers = pickle.load(file)
 
         if get_new_servers_configs:
-            configurator = westcomp.configurator.Configurator(self.webdriver_path)
+            configurator = westcomp.configurator.Configurator(webdriver_path=self.webdriver_path, launch=self.config_selenium)
 
             # DEBUG
             # import random

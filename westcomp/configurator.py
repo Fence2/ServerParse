@@ -1,33 +1,11 @@
-import re
-
-import bs4
-
-from modules.parser_tools import *
-from modules.parser_dataclasses import *
+from modules.parser import *
 from .constants import *
 from bs4 import BeautifulSoup
 
 
-class Configurator:
-    def __init__(self, webdriver_path: str = None, launch=True):
-        if webdriver_path is not None and launch:
-            from selenium.webdriver.support.ui import Select  # noqa
-            from selenium.webdriver.common.by import By  # noqa
-            from selenium.webdriver.chrome.service import Service  # noqa
-            from selenium.webdriver.chrome.options import Options  # noqa
-            from selenium import webdriver  # noqa
-
-            options = Options()
-            options.page_load_strategy = 'eager'
-            options.add_argument("window-size=1800,1000")
-            try:
-                self.driver = webdriver.Chrome(service=Service(webdriver_path), options=options)
-            except Exception as e:
-                print("ERROR\nОбновите ваш chromedriver драйвер!\nERROR\n")
-                print(e)
-                import os
-                os.system("pause")
-                exit(-1)
+class Configurator(AbstractConfigurator):
+    def __init__(self, webdriver_path: str = None, launch=False):
+        super().__init__(webdriver_path, launch)
 
     @staticmethod
     def get_config_components_categories_html(config_soup: BeautifulSoup) -> list:
@@ -159,7 +137,8 @@ class Configurator:
 
         return result
 
-    def get_config_components(self, servers: list[str]):
+    @staticmethod
+    def get_config_components(servers: list[str]):
         processed_servers = list()
         all_components = list()
         for count, server_url in enumerate(servers):
@@ -169,8 +148,8 @@ class Configurator:
 
             # Получение страницы
             try:
-                self.driver = selenium_try_to_get_max_5x(self.driver, server_url, HEADERS)
-                soup = BeautifulSoup(self.driver.page_source, "lxml")
+                Configurator.driver = selenium_try_to_get_max_5x(Configurator.driver, server_url, HEADERS)
+                soup = BeautifulSoup(Configurator.driver.page_source, "lxml")
 
                 config = soup.find(class_="wcCalculator")
 
@@ -202,7 +181,7 @@ class Configurator:
 
             # Получение комплектующих конфигуратора
             components_block = config.find_all(class_="wcCalculator_items")[1]
-            components_list = self.get_config_components_categories_html(components_block)
+            components_list = Configurator.get_config_components_categories_html(components_block)
             print(f"    Найдено категорий товаров: {len(components_list)}")
 
             components = list()
@@ -230,5 +209,5 @@ class Configurator:
 
             print()
 
-        self.driver.close()
+        Configurator.driver.close()
         return processed_servers, all_components

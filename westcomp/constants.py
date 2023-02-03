@@ -22,7 +22,6 @@ CONFIG_CATEGORIES = {
     "Салазки": "tray",
 }
 
-
 HEADERS = {'accept': '*/*',
            'origin': MAIN_URL,
            'referer': MAIN_URL + "/",

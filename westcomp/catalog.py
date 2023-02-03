@@ -1,33 +1,11 @@
-import time
-
-import bs4
-
-from modules.parser_tools import *
-from modules.parser_dataclasses import *
+from modules.parser import *
 from .constants import *
 from bs4 import BeautifulSoup
 
 
-class Catalog:
-    def __init__(self, webdriver_path: str = None, launch=True):
-        if webdriver_path is not None and launch:
-            from selenium.webdriver.support.ui import Select  # noqa
-            from selenium.webdriver.common.by import By  # noqa
-            from selenium.webdriver.chrome.service import Service  # noqa
-            from selenium.webdriver.chrome.options import Options  # noqa
-            from selenium import webdriver  # noqa
-
-            options = Options()
-            options.page_load_strategy = 'eager'
-            options.add_argument("window-size=1800,1000")
-            try:
-                self.driver = webdriver.Chrome(service=Service(webdriver_path), options=options)
-            except Exception as e:
-                print("ERROR\nОбновите ваш chromedriver драйвер!\nERROR\n")
-                print(e)
-                import os
-                os.system("pause")
-                exit(-1)
+class Catalog(AbstractCatalog):
+    def __init__(self, webdriver_path: str = None, launch=False):
+        super().__init__(webdriver_path, launch)
 
     @staticmethod
     def get_components_categories(session) -> (dict, requests.Session):
