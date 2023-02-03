@@ -1,16 +1,82 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import os
+import re
+from pathlib import Path
 
 
-# Press the green button in the gutter to run the script.
+from modules.parser import classes, tools
+
+
+def main():
+    print("Добро пожаловать в парсер комплектующих и серверов!")
+    while True:
+        print(
+            "Введите номер конкурента и нажмите Enter\n\n"
+            ""
+            ""
+            "\t3 - WestComp.ru\n"
+            "\t4 - ServerGate.ru\n"
+            "\t5 - Nord-Server.ru\n"
+            "\n"
+        )
+        choice = input().strip()
+
+        if re.fullmatch(r"\d+", choice):
+            break
+        else:
+            print("Ошибка. Нужно ввести только номер:")
+
+    match choice:
+        # case "1":
+        #     pass
+        # case "2":
+        #     pass
+        case "3":
+            from westcomp import Parser
+            from westcomp.constants import CATEGORIES, CONFIG_CATEGORIES
+            parser_name = "WestComp"
+        case "4":
+            from servergate import Parser
+            from servergate.constants import CATEGORIES, CONFIG_CATEGORIES
+            parser_name = "ServerGate"
+        case "5":
+            from nord_server import Parser
+            from nord_server.constants import CATEGORIES, CONFIG_CATEGORIES
+            parser_name = "Nord_Server"
+        case _:
+            return
+
+    folder_to_save = Path.cwd() / f'Data/{parser_name}/{tools.get_today_day_and_month()}/'
+    folder_to_save.mkdir(parents=True, exist_ok=True)
+    webdriver_path = "./chromedriver.exe"
+    nds = False
+
+    match choice:
+        # case "1":
+        #     pass
+        # case "2":
+        #     pass
+        case "3":
+            parser = Parser(
+                folder_to_save,
+                webdriver_path,
+                config_selenium=True
+            )
+            nds = True
+        case "4" | "5":
+            parser = Parser(folder_to_save)
+        case _:
+            return
+
+    tools.launch_parser(
+        parser=parser,
+        folder_to_save=folder_to_save,
+        categories=CATEGORIES,
+        config_categories=CONFIG_CATEGORIES,
+        nds=nds
+    )
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    main()
+    print()
+    os.system("pause")
