@@ -1,7 +1,6 @@
 from pathlib import Path
-
 from openpyxl import Workbook
-from modules.parser_tools import get_today_full_date_str, format_excel_columns_width, get_sheets
+from modules.parser.tools import get_today_full_date_str, format_excel_columns_width, get_sheets
 
 
 def process_components(
@@ -44,7 +43,7 @@ def process_components(
 
     wb = Workbook()
     ws_gs = wb.active
-    ws_gs.title = "ГалтСистемс"
+    ws_gs.title = "ГалтСистемс"  # noqa
     ws_parser = wb.create_sheet(title="Все комплектующие конкурента")
 
     ws_gs.append(["Категория", "Название", "Цена"])
@@ -90,5 +89,5 @@ def process_components(
 
     wb.save(folder_to_save / filename)
 
-    print("Успешное сохранение данных с парсера в файл: ", folder_to_save / filename)
+    print("Успешное сохранение данных с парсера в файл: ", folder_to_save / filename)  # noqa
     return True

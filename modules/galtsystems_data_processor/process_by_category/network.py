@@ -1,6 +1,4 @@
-import re
-from modules.galtsystems_data_processor.universal_dataclass import *
-from modules.parser_tools import Patterns, search_from_pattern, sub_not_digits
+from modules.parser.tools import Patterns, search_from_pattern, sub_not_digits
 
 GS_NETWORK = [
     'X540-T2',

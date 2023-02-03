@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 from dataclasses import dataclass, field
-from modules.parser_tools import Patterns, search_from_pattern, sub_not_digits, get_options, get_unique_name, get_attrs
+from modules.parser.tools import Patterns, search_from_pattern, sub_not_digits, get_options, get_unique_name, get_attrs
 
 
 @dataclass(slots=True, kw_only=True)
@@ -100,6 +100,7 @@ def get_server_name(server_item: CServer, gs_servers_final: dict):
 def configure_psu(gs_server, psu, end_price):
     psu_excel_row = ['', "Блоки питания", '', '']
     PSU_OK = False
+    chosen_comp = None
     try:
         if len(gs_server.psu.amount) and gs_server.psu.amount.isnumeric():
             psu_name = "Нет подходящего"
@@ -133,6 +134,7 @@ def configure_psu(gs_server, psu, end_price):
                     psu_price = comp.price
                     psu_name = comp.name
                     PSU_OK = True
+                    chosen_comp = comp
                     break
             else:
                 if "2" in psu_amount:
@@ -148,6 +150,7 @@ def configure_psu(gs_server, psu, end_price):
                                 psu_price = comp.price
                                 psu_name = comp.name
                             PSU_OK = True
+                            chosen_comp = comp
                             break
 
             if PSU_OK:
@@ -155,11 +158,14 @@ def configure_psu(gs_server, psu, end_price):
                 print(f"    Добавлена стоимость: {psu_name} = {psu_price}")
             elif len(psu):
                 psu_name = psu[0].name
+                chosen_comp = psu[0]
                 psu_price = psu[0].price
                 end_price += psu_price
                 psu_excel_row[0] = 'BAD'
                 print(f"    [BAD] Добавлена стоимость: {psu_name} = {psu_price}")
 
+            if chosen_comp is not None:
+                chosen_comp.checked = False
             psu_excel_row[2] = psu_name
             psu_excel_row[3] = psu_price
         else:
@@ -176,6 +182,7 @@ def configure_psu(gs_server, psu, end_price):
 def configure_raid(gs_server, raid, end_price):
     raid_excel_row = ['', "Raid-контроллер", '', '']
     RAID_OK = False
+    chosen_comp = None
     try:
         if len(gs_server.raid.model):
             raid_name = "Нет подходящего"
@@ -213,6 +220,7 @@ def configure_raid(gs_server, raid, end_price):
                     raid_price = comp.price
                     raid_name = comp.name
                     RAID_OK = True
+                    chosen_comp = comp
                     break
 
             if RAID_OK:
@@ -221,6 +229,7 @@ def configure_raid(gs_server, raid, end_price):
             elif len(raid):
                 raid_name = raid[0].name
                 raid_price = raid[0].price
+                chosen_comp = raid[0]
                 end_price += raid_price
                 if "Cheapest" not in raid:
                     raid_excel_row[0] = 'BAD'
@@ -229,6 +238,8 @@ def configure_raid(gs_server, raid, end_price):
                     RAID_OK = True
                     print(f"    Добавлена стоимость: {raid_name} = {raid_price}")
 
+            if chosen_comp is not None:
+                chosen_comp.checked = False
             raid_excel_row[2] = raid_name
             raid_excel_row[3] = raid_price
         else:
@@ -245,6 +256,8 @@ def configure_raid(gs_server, raid, end_price):
 def configure_network(gs_server, network, end_price):
     network_excel_row = ['', "Сетевая карта", '', '']
     NETWORK_OK = False
+    chosen_comp = None
+
     try:
         if len(gs_server.network.model):
             network_name = "Нет подходящего"
@@ -263,6 +276,7 @@ def configure_network(gs_server, network, end_price):
                     network_price = comp.price
                     network_name = comp.name
                     NETWORK_OK = True
+                    chosen_comp = comp
                     break
 
             if NETWORK_OK:
@@ -271,6 +285,7 @@ def configure_network(gs_server, network, end_price):
             elif len(network):
                 network_name = network[0].name
                 network_price = network[0].price
+                chosen_comp = network[0]
                 end_price += network_price
                 if "Cheapest" not in network_model:
                     network_excel_row[0] = 'BAD'
@@ -279,6 +294,8 @@ def configure_network(gs_server, network, end_price):
                     NETWORK_OK = True
                     print(f"    Добавлена стоимость: {network_name} = {network_price}")
 
+            if chosen_comp is not None:
+                chosen_comp.checked = False
             network_excel_row[2] = network_name
             network_excel_row[3] = network_price
         else:
@@ -295,6 +312,7 @@ def configure_network(gs_server, network, end_price):
 def configure_idrac(gs_server, idrac, end_price):
     idrac_excel_row = ['', "Удалённое управление", '', '']
     IDRAC_OK = False
+    chosen_comp = None
     try:
         if len(gs_server.idrac.model):
             idrac_name = "Нет подходящего"
@@ -313,6 +331,7 @@ def configure_idrac(gs_server, idrac, end_price):
                     idrac_price = comp.price
                     idrac_name = comp.name
                     IDRAC_OK = True
+                    chosen_comp = comp
                     break
 
             if IDRAC_OK:
@@ -321,6 +340,7 @@ def configure_idrac(gs_server, idrac, end_price):
             elif len(idrac):
                 idrac_name = idrac[0].name
                 idrac_price = idrac[0].price
+                chosen_comp = idrac[0]
                 end_price += idrac_price
                 if "Cheapest" not in idrac:
                     idrac_excel_row[0] = 'BAD'
@@ -329,6 +349,8 @@ def configure_idrac(gs_server, idrac, end_price):
                     IDRAC_OK = True
                     print(f"    Добавлена стоимость: {idrac_name} = {idrac_price}")
 
+            if chosen_comp is not None:
+                chosen_comp.checked = False
             idrac_excel_row[2] = idrac_name
             idrac_excel_row[3] = idrac_price
         else:

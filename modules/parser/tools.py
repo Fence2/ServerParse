@@ -1,11 +1,8 @@
 import re
 import time
-from pathlib import Path
-from dataclasses import fields
-
-import pandas as pd
 import requests
-import os
+import pandas as pd
+from dataclasses import fields
 
 
 class Patterns:
@@ -28,7 +25,7 @@ class Patterns:
         capacity = re.compile(r"\d+ *GB", flags=re.I)
         freqHZ = re.compile(r"\d+ *\wHZ", flags=re.I)
         freqPC = re.compile(r"PC\dL?[- ]\d{4,5}", flags=re.I)
-        dimm = re.compile(r"\w{1,2}DIMM", flags=re.I)
+        dimm = re.compile(r"\w{1,2}DIMM", flags=re.I)  # noqa
         ecc = re.compile(r"[ЕE][СC]{2}", flags=re.I)
 
     class TRAY:
@@ -42,15 +39,15 @@ class Patterns:
     class SERVER:
         brand = re.compile(r"Supermicro|HP|DELL", flags=re.I)
         model = re.compile(r"(?:DL|R)\d{3}\w*", flags=re.I)
-        supermicro_model = re.compile(r"\d{4}\w+", flags=re.I)
+        supermicro_model = re.compile(r"\d{4}\w+", flags=re.I)  # noqa
         gen = re.compile(r"G\d{1,2}\b", flags=re.I)
         units = re.compile(r"\b\dU", flags=re.I)
         trays = re.compile(r"\d{1,2}[ -]*[SL]FF", flags=re.I)
 
-    class FULLSERVER:
+    class FULLSERVER:  # noqa
         HP = re.compile(r"(HP)|(DL\d{3}[pр ])|(G\d)|(\d{1,2}[ -]*[SL]FF)", flags=re.I)
         DELL = re.compile(r"(DELL)|(R\d{3}\w*)|(\d{1,2}[ -]*[SL]FF)", flags=re.I)
-        SUPERMICRO = re.compile(r"(Supermicro)|(\d{4})", flags=re.I)
+        SUPERMICRO = re.compile(r"(Supermicro)|(\d{4})", flags=re.I)  # noqa
 
     class MIXED:
         rus_ENG = re.compile(r"[а-яё][a-z]", flags=re.I)
@@ -107,7 +104,7 @@ def add_info_to_trays_and_rails(category: str, comp, server):
     if "рельсы" in category.lower():
         if brand_ok and server.brand not in comp.name.upper():
             comp.name += f" {server.brand}"
-        if model_ok and server.brand.lower() != "supermicro" and server.model not in comp.name.upper():
+        if model_ok and server.brand.lower() != "supermicro" and server.model not in comp.name.upper():  # noqa
             comp.name += f" {server.model}"
         if gen_ok and server.generation not in comp.name.upper():
             comp.name += f" {server.generation}"
@@ -176,7 +173,7 @@ def format_name(name: str) -> str:
     name = re.sub(r"(Gen\s*)(?P<gen>\d)", r"G\g<gen>", name, flags=re.I).strip()
     name = re.sub(r"(?P<num>\d{1,2})([xх]?)(?P<slff>\wFF)", r"\g<num>\g<slff>", name, flags=re.I).strip()
     name = re.sub(r"Registered", "REG", name, flags=re.I)
-    name = re.sub(r"  ", " ", name).strip()
+    name = re.sub(r" {2}", " ", name).strip()
     search_for_mixed_cyrillic_and_latin(name)
     return name
 
@@ -207,7 +204,7 @@ def get_server_category(server) -> int:
         case 'DELL':
             good_model = server.model is not None and re.search(r"R[567]\d\d\w*", server.model, flags=re.I)
             result = 2 if good_model else 5
-        case 'SUPERMICRO':
+        case 'SUPERMICRO':  # noqa
             result = 3 if re.search(r"\d{4}", server.name, flags=re.I) is not None else 6
         case _:
             result = 7
@@ -261,7 +258,7 @@ def requests_try_to_get_max_5x(url: str, headers: dict, session=None):
         return None, session
 
 
-def selenium_try_to_get_max_5x(driver, URL, lambda_condition):
+def selenium_try_to_get_max_5x(driver, url, lambda_condition):
     import selenium.common.exceptions  # noqa
     from selenium.webdriver.support.wait import WebDriverWait  # noqa
     from bs4 import BeautifulSoup
@@ -276,14 +273,14 @@ def selenium_try_to_get_max_5x(driver, URL, lambda_condition):
         try:
             if tries:
                 print(f"Попытка №{tries + 1}")
-            driver.get(URL)
+            driver.get(url)
             time.sleep(0.3)
             WebDriverWait(driver, 15).until(lambda word: is_page_loaded)
             time.sleep(0.2)
             return driver
         except selenium.common.exceptions.TimeoutException:
             tries += 1
-            print(f"Не удалось загрузить страницу {URL}\nПробуем ещё раз.")
+            print(f"Не удалось загрузить страницу {url}\nПробуем ещё раз.")
     return None
 
 
@@ -348,12 +345,15 @@ def get_attrs(class_item):
     return tuple(f.name for f in fields(class_item))
 
 
-def prettify_ram(comp):
+def prettify_ram(comp, nord_server=False):
     ddr = search_from_pattern(Patterns.RAM.ddr, comp.name)
     if ddr is None:
         freqPC = search_from_pattern(Patterns.RAM.freqPC, comp.name)
         if freqPC is not None:
             ddr = str(sub_not_digits(freqPC[:3]))
+            comp.name += f" DDR{ddr}"
+        elif nord_server:  # ТОЛЬКО ДЛЯ NORD-SERVER
+            ddr = "3"
             comp.name += f" DDR{ddr}"
     else:
         ddr = str(sub_not_digits(ddr))
@@ -371,6 +371,150 @@ def prettify_ram(comp):
             if freq_4_digits is not None:
                 freq_4_digits = str(sub_not_digits(freq_4_digits))
                 comp.name = comp.name.replace(freq_4_digits, f"{freq_4_digits}MHZ")
+
+
+def standard_prettify_components_cfg(components: list):
+    pretty_components = dict()
+    for comp in components:
+        if comp.category.lower() == "оперативная память":
+            prettify_ram(comp)
+        elif "процессор" in comp.category.lower():
+            if "xeon" in comp.name.lower() and "intel" not in comp.name.lower():
+                comp.name = f"Intel {comp.name}"
+
+        unique_name = f"{comp.name}|{int(comp.new)}|{comp.price}|{comp.no_sale_price}"
+        if unique_name in pretty_components:
+            pretty_components[unique_name].resource.append(comp.resource)
+            continue
+
+        comp.resource = [comp.resource]
+
+        pretty_components[unique_name] = comp
+
+    pretty_components = list(pretty_components.values())
+    pretty_components.sort(key=lambda x: (x.category, x.name, x.price))
+
+    return pretty_components
+
+
+def standard_prettify_server(server):
+    server.name = re.sub(
+        r"(?P<amount>\d{1,2})\D?(?P<form_factor>[SL]FF)",
+        r"\g<amount>\g<form_factor>",
+        server.name,
+        flags=re.I
+    )
+
+    if server.config_price == 0:
+        server.config_price = server.card_price
+
+    for comp in server.components:
+        if comp.checked and comp.price != 0:
+            server.config_price -= comp.price * comp.checked_amount
+            comp.checked = False
+
+    return server
+
+
+def _get_items_by_category(components, categories_dict, nds):
+    from modules.galtsystems_data_processor.universal_dataclass import ExcelItem
+    result = {k: list() for k in categories_dict.values()}
+    result["other_comp"] = list()
+
+    for comp in components:
+        if not comp.price > 0 or 'количество процессоров' in comp.category.lower():
+            continue
+
+        if nds:
+            comp.price = int(comp.price * 1.1)
+            comp.no_sale_price = int(comp.no_sale_price * 1.1)
+
+        excel_item = ExcelItem(
+            name=comp.name,
+            price=comp.price,
+            new=comp.new,
+            no_sale_price=comp.no_sale_price,
+            category=comp.category
+        )
+
+        if comp.category in categories_dict.keys():
+            key_category = categories_dict[comp.category]
+        else:
+            key_category = "other_comp"
+
+        result[key_category].append(excel_item)
+
+    return result
+
+
+def _get_servers_by_category(servers, nds):
+    if nds:
+        for server in servers:
+            server.card_price = int(server.card_price * 1.1)
+            server.config_price = int(server.config_price * 1.1)
+            for comp in server.components:
+                comp.price = int(comp.price * 1.1)
+                comp.no_sale_price = int(comp.no_sale_price * 1.1)
+
+    result = {
+        'servers': [server for server in servers if server.category < 4 and server.config_price > 0],
+        'other_servers': [server for server in servers if server.category > 3 and server.config_price > 0]
+    }
+
+    return result
+
+
+def _get_components_by_catalog(parser, components=True, servers_list=False, servers_configs=False):
+    return parser.start(
+        get_new_components=components,
+        get_new_servers_list=servers_list,
+        get_new_servers_configs=servers_configs)
+
+
+def _get_servers(parser, components=False, servers_list=True, servers_configs=True):
+    return parser.start(
+        get_new_components=components,
+        get_new_servers_list=servers_list,
+        get_new_servers_configs=servers_configs)
+
+
+def launch_parser(
+        parser,
+        folder_to_save,
+        categories,
+        config_categories,
+        nds=False
+):
+    components = _get_components_by_catalog(
+        parser,
+        # 0, 0, 0
+    )['components']
+
+    parser_data = _get_servers(
+        parser,
+        # 0, 0, 0
+    )
+    servers, config_components = parser_data['servers'], parser_data['config_components']
+    print("Обработка полученных данных...")
+    components_to_process = _get_items_by_category(components, categories, nds)
+    config_components_to_process = _get_items_by_category(config_components, config_categories, nds)
+    servers_to_process = _get_servers_by_category(servers, nds)
+    parser.process_components(
+        **components_to_process,
+        folder_to_save=folder_to_save,
+        filename="Components"
+    )
+
+    parser.process_components(
+        **config_components_to_process,
+        folder_to_save=folder_to_save,
+        filename="Components_from_configurators"
+    )
+    parser.process_servers(
+        **servers_to_process,
+        folder_to_save=folder_to_save,
+        filename="Servers"
+    )
 
 # def log(log_str, log_type="DEBUG"):
 #     from ..

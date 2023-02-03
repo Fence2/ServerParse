@@ -1,6 +1,6 @@
 from pathlib import Path
 from dataclasses import dataclass
-from modules.parser_tools import Patterns, search_from_pattern, sub_not_digits, get_options, get_unique_name, get_attrs
+from modules.parser.tools import Patterns, search_from_pattern, sub_not_digits, get_options, get_unique_name, get_attrs
 
 
 @dataclass(slots=True, kw_only=True)

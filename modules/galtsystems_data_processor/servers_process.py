@@ -1,7 +1,7 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from modules.parser_tools import get_today_full_date_str, format_excel_columns_width
+from modules.parser.tools import get_today_full_date_str, format_excel_columns_width
 
 
 def process_servers(
@@ -20,7 +20,7 @@ def process_servers(
 
     wb = Workbook()
     ws_gs = wb.active
-    ws_gs.title = "ГалтСистемс"
+    ws_gs.title = "ГалтСистемс"  # noqa
     ws_gs.append(["Категория", "Название", "Цена"])
 
     ws_good = wb.create_sheet(title="Идеальный конфиг")
@@ -32,7 +32,7 @@ def process_servers(
 
     # Остальные листы
 
-    def write_cfg_to_book(cfg_servers: dict, wsheet):
+    def write_cfg_to_book(cfg_servers: dict, sheet):
         rows = 0
         for server in cfg_servers.values():
             url = ''
@@ -41,13 +41,13 @@ def process_servers(
                     url = line[0][1]
                     line[0] = line[0][0]
 
-                wsheet.append(line)
+                sheet.append(line)
 
             if url != '':
-                wsheet.cell(row=rows + 1, column=1).hyperlink = url
-                wsheet.cell(row=rows + 1, column=1).style = "Hyperlink"
-                wsheet.cell(row=rows + 1, column=3).font = Font(bold=True)
-                wsheet.cell(row=rows + 1, column=4).font = Font(bold=True)
+                sheet.cell(row=rows + 1, column=1).hyperlink = url
+                sheet.cell(row=rows + 1, column=1).style = "Hyperlink"
+                sheet.cell(row=rows + 1, column=3).font = Font(bold=True)
+                sheet.cell(row=rows + 1, column=4).font = Font(bold=True)
 
             rows += len(server)
 
@@ -67,5 +67,5 @@ def process_servers(
 
     wb.save(folder_to_save / filename)
 
-    print("Успешное сохранение данных с парсера в файл: ", folder_to_save / filename)
+    print("Успешное сохранение данных с парсера в файл: ", folder_to_save / filename)  # noqa
     return True
