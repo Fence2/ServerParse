@@ -9,6 +9,8 @@ class TRAY:
     type: str = ""
     brand: str = ""
     form_factor: str = ""
+    gen: str = ""
+    keys: str = ""
 
 
 specs = (
@@ -16,6 +18,7 @@ specs = (
     Patterns.TRAY.small_form_fact,
     Patterns.TRAY.large_form_fact,
     Patterns.TRAY.is_adapter,
+
 )
 
 
@@ -25,6 +28,10 @@ def get_tray_specs_keys(all_tray):
         tray.key = TRAY(
             brand=tray_specs[0] if tray_specs[0] is not None else '',
         )
+
+        gen = re.findall(Patterns.SERVER.gen, tray.name)
+        if gen is not None and len(gen):
+            tray.key.gen = str(sub_not_digits(gen[-1]))
 
         if tray_specs[1] is not None and tray_specs[2] is None:
             tray.key.form_factor = "SFF"
@@ -55,6 +62,10 @@ def get_tray_name(tray_item: TRAY, gs_tray_final: dict):
         tray_name.append(f"{tray_item.brand}")
     if len(tray_item.form_factor):
         tray_name.append(f"{tray_item.form_factor}")
+    if len(tray_item.gen):
+        tray_name.append(f"G{tray_item.gen}")
+    if len(tray_item.keys):
+        tray_name.append(f"{','.join(tray_item.keys)}")
 
     tray_name = " ".join([i for i in tray_name if len(i.strip())])
 
@@ -62,11 +73,19 @@ def get_tray_name(tray_item: TRAY, gs_tray_final: dict):
 
 
 def get_gs_tray_item(gs_tray):
-    return TRAY(
+    item = TRAY(
         type=gs_tray.get('Type', ''),
         brand=gs_tray.get('Manufacturer', ''),
         form_factor=gs_tray.get('Form-factor', ''),
+        gen=gs_tray.get('Server generation', ''),
+        keys=gs_tray.get('Word in name', ''),
     )
+    if len(item.keys):
+        if not isinstance(item.keys, list):
+            item.keys = [item.keys]
+    else:
+        item.keys = []
+    return item
 
 
 def tray_process(all_tray):
@@ -90,10 +109,20 @@ def tray_process(all_tray):
         tray_from_parser = None
         for tray in all_tray:
             good = list()
-            for attr in get_attrs(TRAY):
-                good.append(
-                    getattr(tray.key, attr).upper() == getattr(gs_tray_item, attr).upper() if getattr(gs_tray_item,
-                                                                                                      attr) != "" else True)
+            for attr in get_attrs(TRAY)[:-1]:
+                if isinstance(getattr(gs_tray_item, attr), str):
+                    if len(getattr(gs_tray_item, attr)):
+                        good.append(getattr(tray.key, attr).upper() == getattr(gs_tray_item, attr).upper())
+                    else:
+                        good.append(True)
+                else:
+                    good.append(getattr(tray.key, attr) in getattr(gs_tray_item, attr))
+
+            if len(gs_tray_item.keys):
+                good_rails = [key.lower() in tray.name.lower() for key in gs_tray_item.keys]
+                good.append(any(good_rails))
+            else:
+                good.append(True)
 
             good = all(good)
             if good:

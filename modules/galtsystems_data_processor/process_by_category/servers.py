@@ -155,14 +155,14 @@ def configure_psu(gs_server, psu, end_price):
 
             if PSU_OK:
                 end_price += psu_price
-                print(f"    Добавлена стоимость: {psu_name} = {psu_price}")
+                # print(f"    Добавлена стоимость: {psu_name} = {psu_price}")
             elif len(psu):
                 psu_name = psu[0].name
                 chosen_comp = psu[0]
                 psu_price = psu[0].price
                 end_price += psu_price
                 psu_excel_row[0] = 'BAD'
-                print(f"    [BAD] Добавлена стоимость: {psu_name} = {psu_price}")
+                # print(f"    [BAD] Добавлена стоимость: {psu_name} = {psu_price}")
 
             if chosen_comp is not None:
                 chosen_comp.checked = False
@@ -172,7 +172,7 @@ def configure_psu(gs_server, psu, end_price):
             PSU_OK = True
             psu_excel_row = []
     except Exception as e:
-        print("!!!!!!!!!!!!!!!!!!!!Ошибка в обработке PSU\n", e)
+        print(f"Ошибка в обработке PSU\n{e} - ")
         PSU_OK = False
         psu_excel_row[0] = 'ERROR'
     finally:
@@ -225,7 +225,7 @@ def configure_raid(gs_server, raid, end_price):
 
             if RAID_OK:
                 end_price += raid_price
-                print(f"    Добавлена стоимость: {raid_name} = {raid_price}")
+                # print(f"    Добавлена стоимость: {raid_name} = {raid_price}")
             elif len(raid):
                 raid_name = raid[0].name
                 raid_price = raid[0].price
@@ -233,10 +233,10 @@ def configure_raid(gs_server, raid, end_price):
                 end_price += raid_price
                 if "Cheapest" not in raid:
                     raid_excel_row[0] = 'BAD'
-                    print(f"    [BAD] Добавлена стоимость: {raid_name} = {raid_price}")
+                    # print(f"    [BAD] Добавлена стоимость: {raid_name} = {raid_price}")
                 else:
                     RAID_OK = True
-                    print(f"    Добавлена стоимость: {raid_name} = {raid_price}")
+                    # print(f"    Добавлена стоимость: {raid_name} = {raid_price}")
 
             if chosen_comp is not None:
                 chosen_comp.checked = False
@@ -246,7 +246,7 @@ def configure_raid(gs_server, raid, end_price):
             RAID_OK = True
             raid_excel_row = []
     except Exception as e:
-        print("!!!!!!!!!!!!!!!!!!!!Ошибка в обработке RAID\n", e)
+        print(f"Ошибка в обработке RAID\n{e} - ")
         RAID_OK = False
         raid_excel_row[0] = 'ERROR'
     finally:
@@ -281,7 +281,7 @@ def configure_network(gs_server, network, end_price):
 
             if NETWORK_OK:
                 end_price += network_price
-                print(f"    Добавлена стоимость: {network_name} = {network_price}")
+                # print(f"    Добавлена стоимость: {network_name} = {network_price}")
             elif len(network):
                 network_name = network[0].name
                 network_price = network[0].price
@@ -289,10 +289,10 @@ def configure_network(gs_server, network, end_price):
                 end_price += network_price
                 if "Cheapest" not in network_model:
                     network_excel_row[0] = 'BAD'
-                    print(f"    [BAD] Добавлена стоимость: {network_name} = {network_price}")
+                    # print(f"    [BAD] Добавлена стоимость: {network_name} = {network_price}")
                 else:
                     NETWORK_OK = True
-                    print(f"    Добавлена стоимость: {network_name} = {network_price}")
+                    # print(f"    Добавлена стоимость: {network_name} = {network_price}")
 
             if chosen_comp is not None:
                 chosen_comp.checked = False
@@ -302,7 +302,7 @@ def configure_network(gs_server, network, end_price):
             NETWORK_OK = True
             network_excel_row = []
     except Exception as e:
-        print("!!!!!!!!!!!!!!!!!!!!Ошибка в обработке NETWORK\n", e)
+        print(f"Ошибка в обработке NETWORK\n{e} - ")
         NETWORK_OK = False
         network_excel_row[0] = 'ERROR'
     finally:
@@ -336,7 +336,7 @@ def configure_idrac(gs_server, idrac, end_price):
 
             if IDRAC_OK:
                 end_price += idrac_price
-                print(f"    Добавлена стоимость: {idrac_name} = {idrac_price}")
+                # print(f"    Добавлена стоимость: {idrac_name} = {idrac_price}")
             elif len(idrac):
                 idrac_name = idrac[0].name
                 idrac_price = idrac[0].price
@@ -344,10 +344,10 @@ def configure_idrac(gs_server, idrac, end_price):
                 end_price += idrac_price
                 if "Cheapest" not in idrac:
                     idrac_excel_row[0] = 'BAD'
-                    print(f"    [BAD] Добавлена стоимость: {idrac_name} = {idrac_price}")
+                    # print(f"    [BAD] Добавлена стоимость: {idrac_name} = {idrac_price}")
                 else:
                     IDRAC_OK = True
-                    print(f"    Добавлена стоимость: {idrac_name} = {idrac_price}")
+                    # print(f"    Добавлена стоимость: {idrac_name} = {idrac_price}")
 
             if chosen_comp is not None:
                 chosen_comp.checked = False
@@ -357,7 +357,7 @@ def configure_idrac(gs_server, idrac, end_price):
             IDRAC_OK = True
             idrac_excel_row = []
     except Exception as e:
-        print("!!!!!!!!!!!!!!!!!!!!Ошибка в обработке IDRAC\n", e)
+        print(f"Ошибка в обработке IDRAC\n{e} - ")
         IDRAC_OK = False
         idrac_excel_row[0] = 'ERROR'
     finally:
@@ -446,12 +446,12 @@ def configure_servers(all_servers, server_options):
             if len(idrac):
                 idrac.sort(key=lambda x: x.price)
 
-            print("Сервер к обработке:", server.name)
-            print(f"    psu={len(psu)}")
-            print(f"    raid={len(raid)}")
-            print(f"    network={len(network)}")
-            print(f"    idrac={len(idrac)}")
-            print()
+            print("Сервер к обработке:", server.name, end=" - ")
+            # print(f"    psu={len(psu)}")
+            # print(f"    raid={len(raid)}")
+            # print(f"    network={len(network)}")
+            # print(f"    idrac={len(idrac)}")
+            # print()
 
             psu_excel_row, PSU_OK, end_price = configure_psu(gs_server, psu, end_price)
 
@@ -477,15 +477,15 @@ def configure_servers(all_servers, server_options):
             excel_server.append([''])
 
             if PSU_OK + RAID_OK + NETWORK_OK + IDRAC_OK == 4:
-                print("++++++++++++Хороший сервер!++++++++++++\n\n")
+                print("+++Хороший сервер!+++")
                 good_servers_excel[server_name] = excel_server
                 gs_servers_final[server_name] = end_price
             elif PSU_OK + RAID_OK + NETWORK_OK + IDRAC_OK > 0:
-                print("-+-Частично хороший сервер-+-\n")
+                print("-+-Частично хороший сервер-+-")
                 partial_servers_excel[server_name] = excel_server
                 gs_servers_final[server_name] = 0
             else:
-                print("---Плохой сервер---\n")
+                print("---Плохой сервер---")
                 bad_servers_excel[server_name] = excel_server
                 gs_servers_final[server_name] = 0
 
