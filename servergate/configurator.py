@@ -12,7 +12,6 @@ class Configurator(AbstractConfigurator):
     @staticmethod
     def get_config_components(servers: list[Server]) -> (list[Server], list[Component]):
         servers_with_config = list()
-        all_components = list()
         try:
             good_servers = [s for s in servers if s.category < 4]
             for server in good_servers:
@@ -59,8 +58,9 @@ class Configurator(AbstractConfigurator):
                             xpath = r"""//main//section//div[@class='container']//div[@class='conf-tabs-data']//div[@class='conf-section conf-section--chassi is-open']//ul[@class='conf-section__list']//li""" + f"[{str(i + 1)}]"
 
                             config_tag = Configurator.driver.find_element(By.XPATH, xpath)
-                            span_input_tag = config_tag.find_element(By.XPATH,
-                                                                     xpath + "//label[@class='radio']//span[@class='radio__label']")
+                            span_input_tag = config_tag.find_element(
+                                By.XPATH,
+                                xpath + "//label[@class='radio']//span[@class='radio__label']")
                             k = 0
                             while k < 5:
                                 span_input_tag.click()
@@ -73,7 +73,6 @@ class Configurator(AbstractConfigurator):
                                 if config_name.lower() in name.lower():
                                     break
                                 k += 1
-
 
                         except Exception as e:
                             print(e)
@@ -97,7 +96,6 @@ class Configurator(AbstractConfigurator):
                     categories_html = Configurator.get_config_components_categories_html(main)
 
                     cfg_components = Configurator.get_components_from_categories(categories_html, new_server)
-                    all_components += cfg_components
                     new_server.components = cfg_components
 
                     servers_with_config.append(new_server)
@@ -110,7 +108,7 @@ class Configurator(AbstractConfigurator):
             print(e)
         finally:
             Configurator.driver.close()
-            return servers_with_config + [s for s in servers if s.category > 3], all_components
+            return servers_with_config + [s for s in servers if s.category > 3]
 
     @staticmethod
     def get_config_components_categories_html(config_soup: BeautifulSoup) -> dict[str, BeautifulSoup]:

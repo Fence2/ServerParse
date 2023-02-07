@@ -1,40 +1,23 @@
 from modules.parser import *
 
 
-def prettify_components_cfg(components: list[Component]):
-    pretty_components = dict()
-    for comp in components:
-        if comp.category.lower() == "оперативная память":
-            prettify_ram(comp)
+def prettify_components(components):
+    pretty_components = standard_prettify_components(components)
 
-        unique_name = f"{comp.name}|{int(comp.new)}|{comp.price}|{comp.no_sale_price}"
-        if unique_name in pretty_components:
-            pretty_components[unique_name].resource.append(comp.resource)
-            continue
+    return pretty_components
 
-        comp.resource = [comp.resource]
 
-        pretty_components[unique_name] = comp
-
-    pretty_components = list(pretty_components.values())
-    pretty_components.sort(key=lambda x: (x.category, x.name, x.price))
+def prettify_components_cfg(components: list[Component], nord_server=False):
+    pretty_components = standard_prettify_components_cfg(components, nord_server=nord_server)
 
     return pretty_components
 
 
 def prettify_servers(servers):
+    all_components = list()
     for server in servers:
-        if "12 LFF" in server.name:
-            server.name = re.sub("12 LFF", "12LFF", server.name, flags=re.I)
+        standard_prettify_server(server)
+        server.components = prettify_components(server.components)
+        all_components += server.components
 
-        server.config_price = server.card_price
-
-        if not len(server.components):
-            continue
-
-        for comp in server.components:
-            if comp.checked and comp.price != 0:
-                server.config_price -= comp.price * comp.checked_amount
-                comp.checked = False
-
-    return servers
+    return servers, prettify_components_cfg(all_components)
