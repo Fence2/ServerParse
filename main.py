@@ -2,8 +2,7 @@ import os
 import re
 from pathlib import Path
 
-
-from modules.parser import classes, tools
+from modules.parser import tools
 
 
 def main():
@@ -31,15 +30,15 @@ def main():
         # case "2":
         #     pass
         case "3":
-            from westcomp import Parser
+            from westcomp import Parser, catalog, configurator, data_prettify  # noqa
             from westcomp.constants import CATEGORIES, CONFIG_CATEGORIES
             parser_name = "WestComp"
         case "4":
-            from servergate import Parser
+            from servergate import Parser, catalog, configurator, data_prettify  # noqa
             from servergate.constants import CATEGORIES, CONFIG_CATEGORIES
             parser_name = "ServerGate"
         case "5":
-            from nord_server import Parser
+            from nord_server import Parser, catalog, configurator, data_prettify  # noqa
             from nord_server.constants import CATEGORIES, CONFIG_CATEGORIES
             parser_name = "Nord_Server"
         case _:
@@ -62,7 +61,13 @@ def main():
                 config_selenium=True
             )
             nds = True
-        case "4" | "5":
+        case "4":
+            parser = Parser(
+                folder_to_save,
+                webdriver_path,
+                config_selenium=True
+            )
+        case "5":
             parser = Parser(folder_to_save)
         case _:
             return
@@ -74,6 +79,17 @@ def main():
         config_categories=CONFIG_CATEGORIES,
         nds=nds
     )
+
+    try:
+        from win10toast import ToastNotifier
+        toast = ToastNotifier()
+        toast.show_toast(
+            "Окончание парсинг",
+            f"Завершён парсинг {parser_name}. Проверьте консоль!",
+            duration=15
+        )
+    except Exception:
+        pass
 
 
 if __name__ == '__main__':
