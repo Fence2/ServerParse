@@ -373,11 +373,19 @@ def prettify_ram(comp, nord_server=False):
                 comp.name = comp.name.replace(freq_4_digits, f"{freq_4_digits}MHZ")
 
 
-def standard_prettify_components_cfg(components: list):
+def standard_prettify_components(components, nord_server=False):
+    for comp in components:
+        if comp.category.lower() == "оперативная память":
+            prettify_ram(comp, nord_server=nord_server)
+
+    return components
+
+
+def standard_prettify_components_cfg(components: list, nord_server=False):
     pretty_components = dict()
     for comp in components:
         if comp.category.lower() == "оперативная память":
-            prettify_ram(comp)
+            prettify_ram(comp, nord_server=nord_server)
         elif "процессор" in comp.category.lower():
             if "xeon" in comp.name.lower() and "intel" not in comp.name.lower():
                 comp.name = f"Intel {comp.name}"
@@ -485,6 +493,7 @@ def launch_parser(
         config_categories,
         nds=False
 ):
+    from modules.galtsystems_data_processor import components_process, servers_process
     components = _get_components_by_catalog(
         parser,
         # 0, 0, 0
@@ -499,18 +508,18 @@ def launch_parser(
     components_to_process = _get_items_by_category(components, categories, nds)
     config_components_to_process = _get_items_by_category(config_components, config_categories, nds)
     servers_to_process = _get_servers_by_category(servers, nds)
-    parser.process_components(
+    components_process.process_components(
         **components_to_process,
         folder_to_save=folder_to_save,
         filename="Components"
     )
 
-    parser.process_components(
+    components_process.process_components(
         **config_components_to_process,
         folder_to_save=folder_to_save,
         filename="Components_from_configurators"
     )
-    parser.process_servers(
+    servers_process.process_servers(
         **servers_to_process,
         folder_to_save=folder_to_save,
         filename="Servers"
