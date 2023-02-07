@@ -20,7 +20,6 @@ class Configurator:
     @staticmethod
     def get_config_components(servers: list[Server]):
         servers_with_config = list()
-        all_components = list()
 
         good_servers = [s for s in servers if s.category < 4]
         for server in good_servers:
@@ -48,7 +47,6 @@ class Configurator:
             categories_html = Configurator.get_config_components_categories_html(form)
 
             cfg_components = Configurator.get_components_from_categories(categories_html, server)
-            all_components += cfg_components
             server.components = cfg_components
 
             servers_with_config.append(server)
@@ -57,7 +55,7 @@ class Configurator:
             print()
             time.sleep(1.5)
 
-        return servers_with_config + [s for s in servers if s.category > 3], all_components
+        return servers_with_config + [s for s in servers if s.category > 3]
 
     @staticmethod
     def get_config_components_categories_html(config_soup: BeautifulSoup) -> dict[str, BeautifulSoup]:
