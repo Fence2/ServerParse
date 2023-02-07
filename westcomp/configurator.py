@@ -140,7 +140,6 @@ class Configurator(AbstractConfigurator):
     @staticmethod
     def get_config_components(servers: list[str]):
         processed_servers = list()
-        all_components = list()
         for count, server_url in enumerate(servers):
             print(f"Осталось получить: {len(servers) - count} конфигураторов")
             time.sleep(2)
@@ -203,11 +202,10 @@ class Configurator(AbstractConfigurator):
                     print(f"        {comp_count_cat}: {comp_count_num}")
 
             server.components = components
-            all_components += components
 
             processed_servers.append(server)
 
             print()
 
         Configurator.driver.close()
-        return processed_servers, all_components
+        return processed_servers
