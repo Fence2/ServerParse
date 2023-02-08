@@ -18,6 +18,7 @@ def main():
             "\n"
         )
         choice = input().strip()
+        # choice = "4"
 
         if re.fullmatch(r"\d+", choice):
             break
@@ -80,16 +81,18 @@ def main():
         nds=nds
     )
 
-    try:
-        from win10toast import ToastNotifier
-        toast = ToastNotifier()
-        toast.show_toast(
-            "Окончание парсинг",
-            f"Завершён парсинг {parser_name}. Проверьте консоль!",
-            duration=15
-        )
-    except Exception:
-        pass
+    print(f"Завершён парсинг {parser_name}. Проверьте консоль!")
+
+    # try:
+    #     from win10toast import ToastNotifier
+    #     toast = ToastNotifier()
+    #     toast.show_toast(
+    #         "Окончание парсинг",
+    #         f"Завершён парсинг {parser_name}. Проверьте консоль!",
+    #         duration=8
+    #     )
+    # except Exception:
+    #     pass
 
 
 if __name__ == '__main__':

@@ -98,7 +98,7 @@ def get_server_name(server_item: CServer, gs_servers_final: dict):
 
 
 def configure_psu(gs_server, psu, end_price):
-    psu_excel_row = ['', "Блоки питания", '', '']
+    psu_excel_row = ['', "Блоки питания", '', '', '']
     PSU_OK = False
     chosen_comp = None
     try:
@@ -156,12 +156,17 @@ def configure_psu(gs_server, psu, end_price):
             if PSU_OK:
                 end_price += psu_price
                 # print(f"    Добавлена стоимость: {psu_name} = {psu_price}")
-            elif len(psu):
-                psu_name = psu[0].name
-                chosen_comp = psu[0]
-                psu_price = psu[0].price
-                end_price += psu_price
+            else:
                 psu_excel_row[0] = 'BAD'
+                amount_str = (str(gs_server.psu.amount) + "x ") if len(gs_server.psu.amount) else ''
+                power_str = (str(gs_server.psu.power) + "W") if len(gs_server.psu.power) else ''
+                psu_excel_row[4] = f'Должно быть: {amount_str}{power_str}'
+
+                if len(psu):
+                    psu_name = psu[0].name
+                    chosen_comp = psu[0]
+                    psu_price = psu[0].price
+                    end_price += psu_price
                 # print(f"    [BAD] Добавлена стоимость: {psu_name} = {psu_price}")
 
             if chosen_comp is not None:
@@ -180,7 +185,7 @@ def configure_psu(gs_server, psu, end_price):
 
 
 def configure_raid(gs_server, raid, end_price):
-    raid_excel_row = ['', "Raid-контроллер", '', '']
+    raid_excel_row = ['', "Raid-контроллер", '', '', '']
     RAID_OK = False
     chosen_comp = None
     try:
@@ -226,17 +231,21 @@ def configure_raid(gs_server, raid, end_price):
             if RAID_OK:
                 end_price += raid_price
                 # print(f"    Добавлена стоимость: {raid_name} = {raid_price}")
-            elif len(raid):
-                raid_name = raid[0].name
-                raid_price = raid[0].price
-                chosen_comp = raid[0]
-                end_price += raid_price
+            else:
                 if "Cheapest" not in raid:
                     raid_excel_row[0] = 'BAD'
+                    model_str = (str(gs_server.raid.model) + " ") if len(gs_server.raid.model) else ''
+                    speed_str = (str(gs_server.raid.speed) + "Gb/s") if len(gs_server.raid.speed) else ''
+                    raid_excel_row[4] = f'Должно быть: {model_str}{speed_str}'
                     # print(f"    [BAD] Добавлена стоимость: {raid_name} = {raid_price}")
                 else:
                     RAID_OK = True
                     # print(f"    Добавлена стоимость: {raid_name} = {raid_price}")
+                if len(raid):
+                    raid_name = raid[0].name
+                    raid_price = raid[0].price
+                    chosen_comp = raid[0]
+                    end_price += raid_price
 
             if chosen_comp is not None:
                 chosen_comp.checked = False
@@ -254,7 +263,7 @@ def configure_raid(gs_server, raid, end_price):
 
 
 def configure_network(gs_server, network, end_price):
-    network_excel_row = ['', "Сетевая карта", '', '']
+    network_excel_row = ['', "Сетевая карта", '', '', '']
     NETWORK_OK = False
     chosen_comp = None
 
@@ -282,17 +291,20 @@ def configure_network(gs_server, network, end_price):
             if NETWORK_OK:
                 end_price += network_price
                 # print(f"    Добавлена стоимость: {network_name} = {network_price}")
-            elif len(network):
-                network_name = network[0].name
-                network_price = network[0].price
-                chosen_comp = network[0]
-                end_price += network_price
+            else:
                 if "Cheapest" not in network_model:
                     network_excel_row[0] = 'BAD'
+                    model_str = (str(gs_server.network.model) + " ") if len(gs_server.network.model) else ''
+                    network_excel_row[4] = f'Должно быть: {model_str}'
                     # print(f"    [BAD] Добавлена стоимость: {network_name} = {network_price}")
                 else:
                     NETWORK_OK = True
                     # print(f"    Добавлена стоимость: {network_name} = {network_price}")
+                if len(network):
+                    network_name = network[0].name
+                    network_price = network[0].price
+                    chosen_comp = network[0]
+                    end_price += network_price
 
             if chosen_comp is not None:
                 chosen_comp.checked = False
@@ -310,7 +322,7 @@ def configure_network(gs_server, network, end_price):
 
 
 def configure_idrac(gs_server, idrac, end_price):
-    idrac_excel_row = ['', "Удалённое управление", '', '']
+    idrac_excel_row = ['', "Удалённое управление", '', '', '']
     IDRAC_OK = False
     chosen_comp = None
     try:
@@ -337,17 +349,20 @@ def configure_idrac(gs_server, idrac, end_price):
             if IDRAC_OK:
                 end_price += idrac_price
                 # print(f"    Добавлена стоимость: {idrac_name} = {idrac_price}")
-            elif len(idrac):
-                idrac_name = idrac[0].name
-                idrac_price = idrac[0].price
-                chosen_comp = idrac[0]
-                end_price += idrac_price
+            else:
                 if "Cheapest" not in idrac:
                     idrac_excel_row[0] = 'BAD'
+                    model_str = (str(gs_server.idrac.model) + " ") if len(gs_server.idrac.model) else ''
+                    idrac_excel_row[4] = f'Должно быть: {model_str}'
                     # print(f"    [BAD] Добавлена стоимость: {idrac_name} = {idrac_price}")
                 else:
                     IDRAC_OK = True
                     # print(f"    Добавлена стоимость: {idrac_name} = {idrac_price}")
+                if len(idrac):
+                    idrac_name = idrac[0].name
+                    idrac_price = idrac[0].price
+                    chosen_comp = idrac[0]
+                    end_price += idrac_price
 
             if chosen_comp is not None:
                 chosen_comp.checked = False
@@ -429,6 +444,8 @@ def configure_servers(all_servers, server_options):
             server = parser_server
             end_price = server.config_price
 
+            not_excluded_comps = [comp for comp in server.components if comp.checked]
+
             psu = [comp for comp in server.components if "блок" in comp.category.lower()]
             if len(psu):
                 psu.sort(key=lambda x: x.price)
@@ -445,6 +462,10 @@ def configure_servers(all_servers, server_options):
                      re.search(r"удал[её]нн", comp.category, flags=re.I) is not None]
             if len(idrac):
                 idrac.sort(key=lambda x: x.price)
+
+            for comp in psu + raid + network + idrac:
+                if comp in not_excluded_comps:
+                    not_excluded_comps.remove(comp)
 
             print("Сервер к обработке:", server.name, end=" - ")
             # print(f"    psu={len(psu)}")
@@ -466,6 +487,24 @@ def configure_servers(all_servers, server_options):
                 ['', 'Платформа', 'Цена без всего', server.config_price],
             ]
 
+            not_excluded_comps_rows = list()
+            _bad_categories_pattern = re.compile(
+                r"процессор|"
+                r"оперативная\s+памят|"
+                r"плашк\w?\s+памят\w?|"
+                r"рельс\w?|"
+                r"видеокарт|"
+                r"ж[её]стк\w+\s+диск\w?\b",
+                flags=re.I
+            )
+            for comp in not_excluded_comps:
+                lower_category = comp.category.lower()
+                if _bad_categories_pattern.search(lower_category):
+                    not_excluded_comps_rows.append(
+                        ['BAD', comp.category, f"{comp.checked_amount}x {comp.name}", comp.price,
+                         "Стоимость этого комплектующего вероятно нужно найти и вычесть!"]
+                    )
+
             if len(psu_excel_row):
                 excel_server.append(psu_excel_row)
             if len(raid_excel_row):
@@ -474,13 +513,18 @@ def configure_servers(all_servers, server_options):
                 excel_server.append(network_excel_row)
             if len(idrac_excel_row):
                 excel_server.append(idrac_excel_row)
+            if len(not_excluded_comps_rows):
+                excel_server.extend(not_excluded_comps_rows)
+                BAD_COMPS = True
+            else:
+                BAD_COMPS = False
             excel_server.append([''])
 
-            if PSU_OK + RAID_OK + NETWORK_OK + IDRAC_OK == 4:
+            if PSU_OK + RAID_OK + NETWORK_OK + IDRAC_OK - BAD_COMPS == 4:
                 print("+++Хороший сервер!+++")
                 good_servers_excel[server_name] = excel_server
                 gs_servers_final[server_name] = end_price
-            elif PSU_OK + RAID_OK + NETWORK_OK + IDRAC_OK > 0:
+            elif PSU_OK + RAID_OK + NETWORK_OK + IDRAC_OK - BAD_COMPS > 0:
                 print("-+-Частично хороший сервер-+-")
                 partial_servers_excel[server_name] = excel_server
                 gs_servers_final[server_name] = 0

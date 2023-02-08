@@ -204,7 +204,9 @@ class MainParser:
                 with open(self.components_file_bin, "rb") as file:
                     components = pickle.load(file)
 
-        if get_new_servers_list or get_new_servers_configs:
+        if get_new_servers_list or \
+            get_new_servers_configs or \
+            (get_new_components + get_new_servers_list + get_new_servers_configs == 0):
             if get_new_servers_list:
                 # Серверы: Получение
                 print("Серверы: Получение")

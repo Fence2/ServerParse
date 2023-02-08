@@ -31,7 +31,7 @@ specs = (
     Patterns.RAM.freqHZ,  # 2
     Patterns.RAM.freqPC,  # 3
     Patterns.RAM.dimm,  # 4
-    Patterns.RAM.ecc,  # 5
+    Patterns.RAM.not_ecc,  # 5
     Patterns.NEW,  # 6
 )
 
@@ -41,7 +41,7 @@ def get_ram_specs_keys(all_ram):
         ram_specs: list = [search_from_pattern(spec, ram.name) for spec in specs]
         ram.key = RAM(
             ddr=str(sub_not_digits(ram_specs[0])) if ram_specs[0] is not None else '',
-            ecc='Y' if ram_specs[5] is not None else '',
+            ecc='Y' if ram_specs[4] is None else 'N',
             dimm=ram_specs[4] if ram_specs[4] is not None else 'RDIMM',
             capacity=str(sub_not_digits(ram_specs[1])) if ram_specs[1] is not None else '',
             freqHZ=str(sub_not_digits(ram_specs[2])) if ram_specs[2] is not None else '',

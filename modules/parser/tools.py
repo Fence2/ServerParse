@@ -27,6 +27,7 @@ class Patterns:
         freqPC = re.compile(r"PC\dL?[- ]\d{4,5}", flags=re.I)
         dimm = re.compile(r"\w{1,2}DIMM", flags=re.I)  # noqa
         ecc = re.compile(r"[ЕE][СC]{2}", flags=re.I)
+        not_ecc = re.compile(r"NO[NT]\s*[ЕE][СC]{2}", flags=re.I)
 
     class TRAY:
         small_form_fact = re.compile(r"2.5|SFF", flags=re.I)
