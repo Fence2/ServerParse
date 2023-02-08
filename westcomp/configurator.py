@@ -35,7 +35,7 @@ class Configurator(AbstractConfigurator):
                     category_name = "Процессоры"
                 elif "память" in lower_name and re.search("ssd|hdd", lower_name) is None:
                     category_name = "Оперативная память"
-                elif "raid" in lower_name and "кэш" not in lower_name:
+                elif ("raid" in lower_name or "рейд" in lower_name or "реид" in lower_name) and "кэш" not in lower_name:
                     category_name = "RAID контроллер"
                 elif "салазки" in lower_name:
                     category_name = "Салазки"
