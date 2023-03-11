@@ -3,19 +3,9 @@ from nord_server.constants import *
 from bs4 import BeautifulSoup
 
 
-class Configurator:
+class Configurator(AbstractConfigurator):
     def __init__(self, webdriver_path: str = None, launch=False):
-        if webdriver_path is not None and launch:
-            from selenium.webdriver.support.ui import Select  # noqa
-            from selenium.webdriver.common.by import By  # noqa
-            from selenium.webdriver.chrome.service import Service  # noqa
-            from selenium.webdriver.chrome.options import Options  # noqa
-            from selenium import webdriver  # noqa
-
-            options = Options()
-            options.page_load_strategy = 'eager'
-            options.add_argument("window-size=1800,1000")
-            self.driver = webdriver.Chrome(service=Service(webdriver_path), options=options)
+        super().__init__(webdriver_path, launch)
 
     @staticmethod
     def get_config_components(servers: list[Server]):

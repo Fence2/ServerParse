@@ -163,6 +163,8 @@ class MainParser:
         self.webdriver_path = webdriver_path
         self.catalog_selenium = catalog_selenium
         self.config_selenium = config_selenium
+        self.catalog = None
+        self.configurator = None
 
     def start(
             self,
@@ -176,18 +178,17 @@ class MainParser:
         servers = list()
         servers_with_configs = list()
         config_components = list()
-        catalog = configurator = None
 
         if get_new_components:
             # Комплектующие: Получение
             print("Комплектующие: Получение")
 
-            catalog = self.module.catalog.Catalog(
+            self.catalog = self.module.catalog.Catalog(
                 webdriver_path=self.webdriver_path,
                 launch=self.catalog_selenium
             )
 
-            components = catalog.get_components()
+            components = self.catalog.get_components()
 
             # Комплектующие: Сохранение
             print("Комплектующие: Сохранение..", end="")
@@ -199,23 +200,26 @@ class MainParser:
             with open(self.components_file_bin, "wb") as file:
                 pickle.dump(components, file)
             print("...Успешное сохранение!\n")
+
+            if len(components):
+                components = self.module.data_prettify.prettify_components(components)
         else:
             if Path(self.components_file_bin).is_file():
                 with open(self.components_file_bin, "rb") as file:
                     components = pickle.load(file)
 
         if get_new_servers_list or \
-            get_new_servers_configs or \
-            (get_new_components + get_new_servers_list + get_new_servers_configs == 0):
+                get_new_servers_configs or \
+                (get_new_components + get_new_servers_list + get_new_servers_configs == 0):
             if get_new_servers_list:
                 # Серверы: Получение
                 print("Серверы: Получение")
-                catalog = self.module.catalog.Catalog(
+                self.catalog = self.module.catalog.Catalog(
                     webdriver_path=self.webdriver_path,
                     launch=self.catalog_selenium
-                ) if catalog is None else catalog
+                ) if self.catalog is None else self.catalog
 
-                servers = catalog.get_servers()
+                servers = self.catalog.get_servers()
 
                 # Серверы: Сохранение
                 print("Серверы: Сохранение..", end="")
@@ -230,13 +234,17 @@ class MainParser:
 
             if get_new_servers_configs:
                 # Конфигураторы: Получение
+                try:
+                    self.catalog.driver.close()
+                except Exception:
+                    pass
                 print("Конфигураторы: Получение")
-                configurator = self.module.configurator.Configurator(
+                self.configurator = self.module.configurator.Configurator(
                     webdriver_path=self.webdriver_path,
                     launch=self.config_selenium
                 )
 
-                servers_with_configs = configurator.get_config_components(servers)
+                servers_with_configs = self.configurator.get_config_components(servers)
                 print(f"\nЗагружены данные всех серверов\n")
 
                 # Конфигураторы: Сохранение
@@ -249,6 +257,10 @@ class MainParser:
                     pickle.dump(config_components, file)
                 print("...Успешное сохранение!\n")
 
+                if len(servers_with_configs):
+                    servers_with_configs, config_components = self.module.data_prettify.prettify_servers(
+                        servers_with_configs)
+                    print(f"Уникальных комплектующих из конфигураторов: {len(config_components)}\n")
             else:
                 if Path(self.servers_with_conf_list_bin).is_file():
                     with open(self.servers_with_conf_list_bin, "rb") as file:
@@ -257,12 +269,5 @@ class MainParser:
                 if Path(self.configs_components_bin).is_file():
                     with open(self.configs_components_bin, "rb") as file:
                         config_components = pickle.load(file)
-
-        if len(components):
-            components = self.module.data_prettify.prettify_components(components)
-
-        if len(servers_with_configs):
-            servers_with_configs, config_components = self.module.data_prettify.prettify_servers(servers_with_configs)
-            print(f"Уникальных комплектующих из конфигураторов: {len(config_components)}\n")
 
         return {'components': components, 'servers': servers_with_configs, 'config_components': config_components}

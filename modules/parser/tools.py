@@ -1,5 +1,6 @@
 import re
 import time
+import copy
 import requests
 import pandas as pd
 from dataclasses import fields
@@ -11,6 +12,8 @@ class Patterns:
                      flags=re.I)
     NUMERIC = re.compile(r"\d+(\.\d+)?")
     INT = re.compile(r"\d+")
+
+    MULTIPLE = re.compile(r"^(\s*[x×х]+\s*)(\d{1,2})\D|^\d{1,2}(\s*([x×х]+|(шт|pc)\.?)\s*)", flags=re.I)
 
     class CPU:
         brand = re.compile(r"INTEL|AMD", flags=re.I)
@@ -164,8 +167,8 @@ def format_price(str_price: str) -> int:
 
     if re.search(r"\d+", str_price) is not None:
         str_price = re.sub(r"[^\d.,]", "", str_price)
-        str_price = re.sub(r",", "", str_price)
-        return int(str_price.strip("."))
+        str_price = re.sub(r"[.,]\d*", "", str_price)
+        return int(str_price)
     else:
         return 0
 
@@ -217,16 +220,16 @@ def sort_servers_by_category_and_name(servers):
     servers.sort(key=lambda server: (server.category, server.name))
 
 
-def print_dict(item: dict):
+def print_dict(item: dict, offset=''):
     """
     Функция красивого вывода содержимого словаря с подсчётом уникальных значений
     """
+    if not offset:
+        print(f"Всего элементов словаря:", len(item))
+        print(f"Уникальных значений:", len(set(item.values())))
 
-    print("Всего элементов словаря:", len(item))
-    print("Уникальных значений:", len(set(item.values())))
-
-    for k, v in item.items():
-        print(f"{k}: {v}")
+    for k, v in dict(sorted(item.items(), key=lambda x: x[1], reverse=True)).items():
+        print(f"{offset}{k}: {v}")
 
     print()
 
@@ -259,15 +262,15 @@ def requests_try_to_get_max_5x(url: str, headers: dict, session=None):
         return None, session
 
 
-def selenium_try_to_get_max_5x(driver, url, lambda_condition):
+def selenium_try_to_get_max_5x(driver, url, lambda_condition=True):
     import selenium.common.exceptions  # noqa
     from selenium.webdriver.support.wait import WebDriverWait  # noqa
     from bs4 import BeautifulSoup
 
     def is_page_loaded(html):
-        check = len(BeautifulSoup(html.page_source, "lxml").find_all(lambda_condition))
-        print("is_page_loaded -", check)
-        return check
+        soup = BeautifulSoup(html.page_source, "lxml")
+        check_results = soup.find_all(lambda_condition, limit=3)
+        return len(check_results)
 
     tries = 0
     while tries < 5:
@@ -276,7 +279,10 @@ def selenium_try_to_get_max_5x(driver, url, lambda_condition):
                 print(f"Попытка №{tries + 1}")
             driver.get(url)
             time.sleep(0.3)
-            WebDriverWait(driver, 15).until(lambda word: is_page_loaded)
+            try:
+                WebDriverWait(driver, 15).until(is_page_loaded)
+            except selenium.common.exceptions.TimeoutException:
+                pass
             time.sleep(0.2)
             return driver
         except selenium.common.exceptions.TimeoutException:
@@ -374,17 +380,30 @@ def prettify_ram(comp, nord_server=False):
                 comp.name = comp.name.replace(freq_4_digits, f"{freq_4_digits}MHZ")
 
 
-def standard_prettify_components(components, nord_server=False):
+def standard_prettify_components(_components, nord_server=False):
+    components = copy.deepcopy(_components)
     for comp in components:
+        multiple = search_from_pattern(Patterns.MULTIPLE, comp.name)
+        if multiple:
+            multiple_amount = sub_not_digits(multiple)
+            if multiple_amount:
+                comp.name = Patterns.MULTIPLE.sub(f"{multiple_amount}x ", comp.name)
         if comp.category.lower() == "оперативная память":
             prettify_ram(comp, nord_server=nord_server)
 
     return components
 
 
-def standard_prettify_components_cfg(components: list, nord_server=False):
+def standard_prettify_components_cfg(_components: list, nord_server=False):
     pretty_components = dict()
+    components = copy.deepcopy(_components)
     for comp in components:
+        multiple = search_from_pattern(Patterns.MULTIPLE, comp.name)
+        if multiple:
+            multiple_amount = sub_not_digits(multiple)
+            if multiple_amount:
+                comp.price //= multiple_amount
+                comp.name = Patterns.MULTIPLE.sub("", comp.name)
         if comp.category.lower() == "оперативная память":
             prettify_ram(comp, nord_server=nord_server)
         elif "процессор" in comp.category.lower():
@@ -480,7 +499,7 @@ def _get_components_by_catalog(parser, components=True, servers_list=False, serv
         get_new_servers_configs=servers_configs)
 
 
-def _get_servers(parser, components=False, servers_list=True, servers_configs=True):
+def _get_servers(parser, components=False, servers_list=False, servers_configs=True):  # TODO
     return parser.start(
         get_new_components=components,
         get_new_servers_list=servers_list,

@@ -10,15 +10,15 @@ def main():
     while True:
         print(
             "Введите номер конкурента и нажмите Enter\n\n"
-            ""
+            "\t1 - ServerMall.ru\n"
             ""
             "\t3 - WestComp.ru\n"
             "\t4 - ServerGate.ru\n"
             "\t5 - Nord-Server.ru\n"
             "\n"
         )
-        choice = input().strip()
-        # choice = "4"
+        # choice = input().strip()
+        choice = "1"  # TODO Перед релизом закомментировать
 
         if re.fullmatch(r"\d+", choice):
             break
@@ -26,8 +26,10 @@ def main():
             print("Ошибка. Нужно ввести только номер:")
 
     match choice:
-        # case "1":
-        #     pass
+        case "1":
+            from servermall import Parser, catalog, configurator, data_prettify  # noqa
+            from servermall.constants import CATEGORIES, CONFIG_CATEGORIES
+            parser_name = "ServerMall"
         # case "2":
         #     pass
         case "3":
@@ -51,8 +53,13 @@ def main():
     nds = False
 
     match choice:
-        # case "1":
-        #     pass
+        case "1":
+            parser = Parser(
+                folder_to_save,
+                webdriver_path,
+                catalog_selenium=True,
+                config_selenium=True
+            )
         # case "2":
         #     pass
         case "3":
