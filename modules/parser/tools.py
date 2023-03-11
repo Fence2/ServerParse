@@ -499,7 +499,7 @@ def _get_components_by_catalog(parser, components=True, servers_list=False, serv
         get_new_servers_configs=servers_configs)
 
 
-def _get_servers(parser, components=False, servers_list=False, servers_configs=True):  # TODO
+def _get_servers(parser, components=False, servers_list=True, servers_configs=True):
     return parser.start(
         get_new_components=components,
         get_new_servers_list=servers_list,

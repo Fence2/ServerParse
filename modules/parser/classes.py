@@ -253,14 +253,14 @@ class MainParser:
                 with open(self.servers_with_conf_list_bin, "wb") as file:
                     pickle.dump(servers_with_configs, file)
 
-                with open(self.configs_components_bin, "wb") as file:
-                    pickle.dump(config_components, file)
-                print("...Успешное сохранение!\n")
-
                 if len(servers_with_configs):
                     servers_with_configs, config_components = self.module.data_prettify.prettify_servers(
                         servers_with_configs)
                     print(f"Уникальных комплектующих из конфигураторов: {len(config_components)}\n")
+
+                with open(self.configs_components_bin, "wb") as file:
+                    pickle.dump(config_components, file)
+                print("...Успешное сохранение!\n")
             else:
                 if Path(self.servers_with_conf_list_bin).is_file():
                     with open(self.servers_with_conf_list_bin, "rb") as file:
@@ -269,5 +269,8 @@ class MainParser:
                 if Path(self.configs_components_bin).is_file():
                     with open(self.configs_components_bin, "rb") as file:
                         config_components = pickle.load(file)
+                    if len(config_components) == 0:
+                        _, config_components = self.module.data_prettify.prettify_servers(
+                            servers_with_configs)
 
         return {'components': components, 'servers': servers_with_configs, 'config_components': config_components}

@@ -17,8 +17,8 @@ def main():
             "\t5 - Nord-Server.ru\n"
             "\n"
         )
-        # choice = input().strip()
-        choice = "1"  # TODO Перед релизом закомментировать
+        choice = input().strip()
+        # choice = "1"
 
         if re.fullmatch(r"\d+", choice):
             break
