@@ -107,8 +107,8 @@ class Configurator(AbstractConfigurator):
             r"корзин[\wа-яё] на|hdd": "Жёсткие диски",
             r"салазк[\wа-яё]": "Салазки",
             r"raid|р[еэ][ий]д": "RAID-контроллер",
-            r"сетев[\wа-яё] карт[\wа-яё]|network": "Сетевая карта",
-            r"монтаж и подключение|рельс": "Рельсы",
+            r"сетев[\wа-яё]+ карт[\wа-яё]|network": "Сетевая карта",
+            r"монтаж и подключение|рельс|креплен[а-яё]+ для сервер[а-яё]+ в стойк[а-яё]+": "Рельсы",
             r"удал[её]нн[\wа-яё]+ управлен[\wа-яё]+": "Удалённое управление"
         }
 
@@ -227,7 +227,6 @@ class Configurator(AbstractConfigurator):
                         # print(f"{category_name} {str(item)}")
                         checked_amount = 1
 
-                custom_category = None
                 if category_name == "Жёсткие диски" and \
                     re.search(r"\d+\s*[MGT]B", name, flags=re.I) is None and \
                         re.search("салазк|переходник", name, flags=re.I) is not None:

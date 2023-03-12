@@ -46,4 +46,4 @@ HEADERS = {
     "sec-fetch-site": "same-origin",
     "sec-fetch-user": "?1",
     "upgrade-insecure-requests": "1"
-},
+}

@@ -43,7 +43,7 @@ class Patterns:
     class SERVER:
         brand = re.compile(r"Supermicro|HP|DELL", flags=re.I)
         model = re.compile(r"(?:DL|R)\d{3}\w*", flags=re.I)
-        supermicro_model = re.compile(r"\d{4}\w+", flags=re.I)  # noqa
+        supermicro_model = re.compile(r"\d{4}\S*", flags=re.I)  # noqa
         gen = re.compile(r"G\d{1,2}\b", flags=re.I)
         units = re.compile(r"\b\dU", flags=re.I)
         trays = re.compile(r"\d{1,2}[ -]*[SL]FF", flags=re.I)
@@ -407,7 +407,8 @@ def standard_prettify_components_cfg(_components: list, nord_server=False):
         if comp.category.lower() == "оперативная память":
             prettify_ram(comp, nord_server=nord_server)
         elif "процессор" in comp.category.lower():
-            if "xeon" in comp.name.lower() and "intel" not in comp.name.lower():
+            if re.search(r"xeon|gold|silver|bronze|platinum", comp.name, flags=re.I) and \
+                    "intel" not in comp.name.lower():
                 comp.name = f"Intel {comp.name}"
 
         unique_name = f"{comp.name}|{int(comp.new)}|{comp.price}|{comp.no_sale_price}"

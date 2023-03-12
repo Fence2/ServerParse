@@ -419,19 +419,23 @@ def configure_servers(all_servers, server_options):
         for server in all_servers:
             good = list()
             for attr in get_attrs(CServer)[:5]:
+                server_value = getattr(server.key, attr)
+                if server_value is None:
+                    good.append(False)
+                    continue
                 if len(getattr(gs_server, attr)):
                     if attr == "model" and gs_server.brand.lower() == "supermicro":
                         if isinstance(getattr(gs_server, attr), str):
-                            good.append(getattr(server.key, attr).upper() == str(
-                                sub_not_digits(getattr(gs_server, attr).upper())))
+                            good.append(sub_not_digits(server_value.upper()) ==
+                                        sub_not_digits(getattr(gs_server, attr).upper()))
                         else:
                             good.append(
-                                getattr(server.key, attr) in [str(sub_not_digits(i)) for i in getattr(gs_server, attr)])
+                                server_value in [str(sub_not_digits(i)) for i in getattr(gs_server, attr)])
                     else:
                         if isinstance(getattr(gs_server, attr), str):
-                            good.append(getattr(server.key, attr).upper() == getattr(gs_server, attr).upper())
+                            good.append(server_value.upper() == getattr(gs_server, attr).upper())
                         else:
-                            good.append(getattr(server.key, attr) in getattr(gs_server, attr))
+                            good.append(server_value in getattr(gs_server, attr))
 
             good = all(good)
             if good:
