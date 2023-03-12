@@ -11,7 +11,7 @@ def main():
         print(
             "Введите номер конкурента и нажмите Enter\n\n"
             "\t1 - ServerMall.ru\n"
-            ""
+            "\t2 - ittelo.ru\n"
             "\t3 - WestComp.ru\n"
             "\t4 - ServerGate.ru\n"
             "\t5 - Nord-Server.ru\n"
@@ -30,8 +30,10 @@ def main():
             from servermall import Parser, catalog, configurator, data_prettify  # noqa
             from servermall.constants import CATEGORIES, CONFIG_CATEGORIES
             parser_name = "ServerMall"
-        # case "2":
-        #     pass
+        case "2":
+            from ittelo import Parser, catalog, configurator, data_prettify  # noqa
+            from ittelo.constants import CATEGORIES, CONFIG_CATEGORIES
+            parser_name = "ittelo"
         case "3":
             from westcomp import Parser, catalog, configurator, data_prettify  # noqa
             from westcomp.constants import CATEGORIES, CONFIG_CATEGORIES
@@ -60,8 +62,8 @@ def main():
                 catalog_selenium=True,
                 config_selenium=True
             )
-        # case "2":
-        #     pass
+        case "2":
+            parser = Parser(folder_to_save)
         case "3":
             parser = Parser(
                 folder_to_save,
