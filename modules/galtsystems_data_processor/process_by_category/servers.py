@@ -419,7 +419,11 @@ def configure_servers(all_servers, server_options):
         for server in all_servers:
             good = list()
             for attr in get_attrs(CServer)[:5]:
-                server_value = getattr(server.key, attr)
+                try:
+                    server_value = getattr(server.key, attr)
+                except AttributeError:
+                    good.append(False)
+                    break
                 if server_value is None:
                     good.append(False)
                     continue

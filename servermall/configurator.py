@@ -187,7 +187,10 @@ class Configurator(AbstractConfigurator):
                 try:
                     label = item.find('label')
                     spans = label.find_all('span')
-                    name = [s for s in spans if len(s.text.strip())][0].text.strip()
+                    try:
+                        name = [s for s in spans if len(s.text.strip())][0].text.strip()
+                    except Exception:
+                        name = label.text.strip()
                     name = re.sub("S[АA][ТT][АA]", "SATA", name, flags=re.I)
                     name = format_name(name)
                 except Exception:

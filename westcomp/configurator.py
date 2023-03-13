@@ -147,7 +147,7 @@ class Configurator(AbstractConfigurator):
 
             # Получение страницы
             try:
-                Configurator.driver = selenium_try_to_get_max_5x(Configurator.driver, server_url, HEADERS)
+                Configurator.driver = selenium_try_to_get_max_5x(Configurator.driver, server_url)
                 soup = BeautifulSoup(Configurator.driver.page_source, "lxml")
 
                 config = soup.find(class_="wcCalculator")

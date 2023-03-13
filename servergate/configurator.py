@@ -1,3 +1,5 @@
+import re
+
 import bs4
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -8,6 +10,16 @@ from bs4 import BeautifulSoup
 class Configurator(AbstractConfigurator):
     def __init__(self, webdriver_path: str = None, launch=False):
         super().__init__(webdriver_path, launch)
+
+    @staticmethod
+    def _page_loaded(tag: bs4.Tag):
+        main_tag = tag.find(class_='main')
+        if main_tag:
+            price_tag = main_tag.find('span', attrs={'id': 'total_value'})
+            if price_tag:
+                return re.search(r"\d+", price_tag.text)
+
+        return False
 
     @staticmethod
     def get_config_components(servers: list[Server]) -> (list[Server], list[Component]):
@@ -21,7 +33,7 @@ class Configurator(AbstractConfigurator):
                 result = selenium_try_to_get_max_5x(
                     driver=Configurator.driver,
                     url=server.config_url,
-                    lambda_condition=lambda tag: tag.find(class_="main").find(class_="total-value")
+                    lambda_condition=Configurator._page_loaded
                 )
                 if result is not None:
                     Configurator.driver = result

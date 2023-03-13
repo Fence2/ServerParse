@@ -390,6 +390,10 @@ def standard_prettify_components(_components, nord_server=False):
                 comp.name = Patterns.MULTIPLE.sub(f"{multiple_amount}x ", comp.name)
         if comp.category.lower() == "оперативная память":
             prettify_ram(comp, nord_server=nord_server)
+        elif "процессор" in comp.category.lower():
+            if re.search(r"xeon|gold|silver|bronze|platinum", comp.name, flags=re.I) and \
+                    "intel" not in comp.name.lower():
+                comp.name = f"Intel {comp.name}"
 
     return components
 
