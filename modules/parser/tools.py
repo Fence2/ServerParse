@@ -57,6 +57,31 @@ class Patterns:
         rus_ENG = re.compile(r"[а-яё][a-z]", flags=re.I)
         eng_RUS = re.compile(r"[a-z][а-яё]", flags=re.I)
 
+    class CATEGORY:
+        cpu = re.compile(r"\bcpu\b|процессор", flags=re.I)
+        ram = re.compile(
+            r"(?!.*контрол+[а-яё]+|.*к[эе]ш|.батар)(.*оперативн[а-яё]+\s+памят[а-яё]+|.*\bram\b)(?!.*контрол+[а-яё]+|.*к[эе]ш|.батар)",
+            flags=re.I)
+        hdd = re.compile(r"\bкорзин[\wа-яё] на|hdd", flags=re.I)
+        trays = re.compile(r"\bсалазк[\wа-яё]", flags=re.I)
+        raid = re.compile(r"(\braid\b|\bр[еэ][ий]д\b)(?!.*к[эе]ш|.батар)", flags=re.I)
+        network = re.compile(r"сетев[\wа-яё]+ карт[\wа-яё]|network", flags=re.I)
+        rails = re.compile(r"монтаж и подключение|\bрельс|креплен[а-яё]+ для сервер[а-яё]* в стойк[а-яё]+", flags=re.I)
+        idrac = re.compile(r"удал[её]нн[\wа-яё]+\s+(\bуправлен[\wа-яё]+|\bадминистриров[а-яё]+)", flags=re.I)
+        psu = re.compile(r"\bpsu\b|\bблок[а-яё]*\sпитан[а-яё]*", flags=re.I)
+
+        all_ru = {
+            cpu: "Процессоры",
+            ram: "Оперативная память",
+            hdd: "Жёсткие диски",
+            trays: "Салазки",
+            raid: "RAID-контроллер",
+            network: "Сетевая карта",
+            rails: "Рельсы",
+            idrac: "Удалённое управление",
+            psu: "Блок питания"
+        }
+
 
 def search_from_pattern(pattern: re.Pattern, search_str: str) -> str | None:
     """
@@ -67,6 +92,21 @@ def search_from_pattern(pattern: re.Pattern, search_str: str) -> str | None:
         return None
 
     return result.group().upper()
+
+
+def normalize_category_name(category_name: str) -> str:
+    i = 1
+    for pattern, correct_str in Patterns.CATEGORY.all_ru.items():
+        if i not in (2, 5):
+            if pattern.search(category_name) is not None:
+                return correct_str
+        else:
+            if pattern.match(category_name) is not None:
+                return correct_str
+
+        i += 1
+
+    return category_name
 
 
 def sub_not_digits(word: str):
