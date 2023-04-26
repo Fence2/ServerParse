@@ -15,10 +15,11 @@ def main():
             "\t3 - WestComp.ru\n"
             "\t4 - ServerGate.ru\n"
             "\t5 - Nord-Server.ru\n"
+            "\t6 - Sale-Server.ru\n"
             "\n"
         )
-        choice = input().strip()
-        # choice = "1"
+        # choice = input().strip()
+        choice = "6"  # TODO UNDO
 
         if re.fullmatch(r"\d+", choice):
             break
@@ -46,6 +47,10 @@ def main():
             from nord_server import Parser, catalog, configurator, data_prettify  # noqa
             from nord_server.constants import CATEGORIES, CONFIG_CATEGORIES
             parser_name = "Nord_Server"
+        case "6":
+            from sale_server import Parser, catalog, configurator, data_prettify  # noqa
+            from sale_server.constants import CATEGORIES, CONFIG_CATEGORIES
+            parser_name = "Sale_Server"
         case _:
             return
 
@@ -78,6 +83,8 @@ def main():
                 config_selenium=True
             )
         case "5":
+            parser = Parser(folder_to_save)
+        case "6":
             parser = Parser(folder_to_save)
         case _:
             return
