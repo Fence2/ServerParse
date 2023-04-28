@@ -18,8 +18,8 @@ def main():
             "\t6 - Sale-Server.ru\n"
             "\n"
         )
-        # choice = input().strip()
-        choice = "6"  # TODO UNDO
+        choice = input().strip()
+        # choice = "6"  # TODO UNDO
 
         if re.fullmatch(r"\d+", choice):
             break

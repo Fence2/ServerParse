@@ -73,7 +73,7 @@ class Catalog(AbstractCatalog):
         """
 
         components = list()
-        return components  # TODO DELETE BEFORE RELEASE
+        # return components  # TODO DELETE BEFORE RELEASE
 
         categories = Catalog.get_components_categories()
 
