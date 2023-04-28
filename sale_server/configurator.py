@@ -16,6 +16,7 @@ class Configurator(AbstractConfigurator):
     @staticmethod
     def get_config_components(servers: list[Server]) -> (list[Server], list[Component]):
         servers_with_config = list()
+        return servers
 
         # Configurator.driver = selenium_try_to_get_max_5x(Configurator.driver, MAIN_URL, True)
         # time.sleep(Configurator.delay)

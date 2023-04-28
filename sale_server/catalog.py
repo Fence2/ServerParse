@@ -1,37 +1,23 @@
+import re
+
 from modules.parser import *
 from .constants import *
 from bs4 import BeautifulSoup, Tag
 
 
-def get_pages_amount(html: BeautifulSoup):
-    pagination = html.find(class_="pagination")
+def get_pages_amount(soup: BeautifulSoup):
+    pagination = soup.find("ul", class_="paginator")
     if pagination is None:
         return 1
 
-    def get_only_pages_digits_clickable(tag):
-        only_one_class = len(tag.attrs['class']) == 1
-        page_item_class = 'page-item' in tag.attrs['class']
-        digits_button = str(tag.text).strip().isnumeric()
-        if all([only_one_class, page_item_class, digits_button]):
-            return True
-        else:
-            return False
-
-    pages = pagination.find_all(get_only_pages_digits_clickable)
-    pages_digits = list()
-    for page in pages:
-        pages_digits.append(int(page.text.strip()))
+    pages = pagination.find_all(lambda tag: tag.name == "a" and str(tag.text).strip().isnumeric())
+    pages_digits = [int(page.text.strip()) for page in pages]
     return max(pages_digits)
 
 
-def get_category_formatted_name(html: BeautifulSoup):
-    h1 = html.find("h1").text.strip()
-    category_name = h1.replace("Комплектующие - ", "")
-    category_name = category_name.replace("Запчасти к серверам - ", "")
-    return category_name
-
-
 class Catalog(AbstractCatalog):
+    delay = 1.5
+
     def __init__(self, webdriver_path: str = None, launch=False):
         super().__init__(webdriver_path, launch)
 
@@ -76,7 +62,6 @@ class Catalog(AbstractCatalog):
             print(e)
         return {}
 
-
     @staticmethod
     def get_components() -> list[Component]:
         """
@@ -99,44 +84,31 @@ class Catalog(AbstractCatalog):
 
         components = list()
 
-        overall_info = dict()
-
         categories = Catalog.get_components_categories()
 
         # В каждой категории
         for category_name, category_url in categories.items():
             print("Получение комплектующих категории:", category_name)
-            html = requests_try_to_get_max_5x(category_url, HEADERS)
-            if html is None:
-                print("Не удалось загрузить страницу", category_url)
-                continue
+            category_url = category_url + PAGEN
+            category_total = 0
+            current_page = total_pages = 1
+            while current_page <= total_pages:
+                print(f"\tСтраница {current_page} - получение")
+                req = requests_try_to_get_max_5x(category_url + str(current_page), HEADERS)
+                if req is None:
+                    print("Не удалось загрузить страницу", category_url + str(current_page))
+                    continue
 
-            total_pages = get_pages_amount(BeautifulSoup(html.text, "lxml"))
-            total_components_count_before = len(components)
+                soup = BeautifulSoup(req.text, "lxml")
+                if current_page == 1:
+                    total_pages = get_pages_amount(soup)
 
-            # Загрузить каждую страницу товаров
-            for page in range(1, total_pages + 1):
-                print(f"\tСтраница {page} - получение")
-                time.sleep(1.5)
-                if page != 1:
-                    url = category_url + PAGEN + str(page)
-                    html = requests_try_to_get_max_5x(url, HEADERS)
-                    if html is None:
-                        print("Не удалось загрузить страницу", category_url)
-                        continue
-
-                soup = BeautifulSoup(html.text, "lxml")
-                body = soup.find("body")
-                category_name = get_category_formatted_name(body)
-
-                products = body.find("div", class_="products").find_all("div", class_="product card")
+                products = soup.body.find("div", class_="products").find_all(class_="product-item", recursive=False)
 
                 # Пройтись по каждому товару и сохранить информацию о нём
                 for item in products:
                     item_category = category_name
-                    name = item.find(class_="card-title").text.strip()
-                    if 'HОВЫЙ' in name:
-                        name = re.sub('HОВЫЙ', "НОВЫЙ", name, re.I)
+                    name = item.find_all("a")[-1].text.strip()
                     name = format_name(name)
                     if "кэш" in category_name.lower():
                         is_cache = name[0].isnumeric() and "кэш" in name.lower()
@@ -144,10 +116,12 @@ class Catalog(AbstractCatalog):
                             item_category = "Кэш-память"
 
                     try:
-                        price = item.find(class_="card-footer").text.strip()
-                        price = format_price(price)
+                        price_tag = item.find(class_="prices")
+                        price = re.sub(r"\s+", "", price_tag.text.strip())
+                        price = re.match(r"\d+(?:[.,]\d+)?", price)
+                        price = format_price(price.group())
                     except Exception as e:
-                        print(e)
+                        print(f"\t!Не удалось получить цену товара: {name}\n\t\t{e}")
                         price = 0
 
                     comp = Component(
@@ -158,25 +132,24 @@ class Catalog(AbstractCatalog):
                     )
 
                     components.append(comp)
+                    category_total += 1
 
-                overall_info[category_name] = 0
+                current_page += 1
+                # Задержка в конце запроса
+                time.sleep(Catalog.delay)
 
-            overall_info[category_name] += len(components) - total_components_count_before
-            print(f"\t\tВсего в категории - {overall_info[category_name]}\n")
+            print(f"\t\tВсего в категории - {category_total}\n")
 
-        print("Всего найдено комплектующих:", len(components))
-        categories_sorted_by_amount = sorted(overall_info, key=lambda x: overall_info[x], reverse=True)
-        overall_info = {k: overall_info[k] for k in categories_sorted_by_amount}
-        print_dict(overall_info)
-
-        print("Получено комплектующих:", len(components))
         components.sort(key=lambda comp: (comp.category, comp.name))
-        return components
+        print("Всего получено комплектующих:", len(components))
+        print_dict(products_group_by_category(components), offset="\t")
 
+        return components
 
     @staticmethod
     def get_servers() -> list[Server]:
         servers = list()
+        return servers
 
         response = requests_try_to_get_max_5x(CATALOG_CONFIGURATORS_URL, HEADERS)
         if response is None:

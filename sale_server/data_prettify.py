@@ -2,7 +2,7 @@ from modules.parser import *
 
 
 def prettify_components(components):
-    pretty_components = standard_prettify_components(components)
+    pretty_components = standard_prettify_components(components, nord_server=True)  # nord_server = sale-server
 
     return pretty_components
 
