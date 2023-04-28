@@ -228,7 +228,7 @@ class Catalog:
                 servers.append(server)
 
         print()
-        sort_servers_by_category_and_name(servers)
+        sort_products_by_category_and_name(servers)
         for server in servers:
             print(server)
 

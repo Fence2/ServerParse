@@ -256,7 +256,7 @@ def get_server_category(server) -> int:
     return result
 
 
-def sort_servers_by_category_and_name(servers):
+def sort_products_by_category_and_name(servers):
     servers.sort(key=lambda server: (server.category, server.name))
 
 

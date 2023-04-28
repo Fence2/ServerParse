@@ -148,7 +148,7 @@ class Catalog(AbstractCatalog):
 
             servers.append(server)
 
-        sort_servers_by_category_and_name(servers)
+        sort_products_by_category_and_name(servers)
         print("\nНайдено серверов:", len(servers))
         for server in servers:
             print(server)
