@@ -5,16 +5,6 @@ from .constants import *
 from bs4 import BeautifulSoup, Tag
 
 
-def get_pages_amount(soup: BeautifulSoup):
-    pagination = soup.find("ul", class_="paginator")
-    if pagination is None:
-        return 1
-
-    pages = pagination.find_all(lambda tag: tag.name == "a" and str(tag.text).strip().isnumeric())
-    pages_digits = [int(page.text.strip()) for page in pages]
-    return max(pages_digits)
-
-
 class Catalog(AbstractCatalog):
     delay = 1.5
 
@@ -83,6 +73,7 @@ class Catalog(AbstractCatalog):
         """
 
         components = list()
+        return components  # TODO DELETE BEFORE RELEASE
 
         categories = Catalog.get_components_categories()
 
@@ -101,7 +92,7 @@ class Catalog(AbstractCatalog):
 
                 soup = BeautifulSoup(req.text, "lxml")
                 if current_page == 1:
-                    total_pages = get_pages_amount(soup)
+                    total_pages = Catalog.get_pages_amount(soup)
 
                 products = soup.body.find("div", class_="products").find_all(class_="product-item", recursive=False)
 
@@ -140,7 +131,7 @@ class Catalog(AbstractCatalog):
 
             print(f"\t\tВсего в категории - {category_total}\n")
 
-        components.sort(key=lambda comp: (comp.category, comp.name))
+        sort_products_by_category_and_name(components)
         print("Всего получено комплектующих:", len(components))
         print_dict(products_group_by_category(components), offset="\t")
 
@@ -149,45 +140,42 @@ class Catalog(AbstractCatalog):
     @staticmethod
     def get_servers() -> list[Server]:
         servers = list()
-        return servers
 
-        response = requests_try_to_get_max_5x(CATALOG_CONFIGURATORS_URL, HEADERS)
-        if response is None:
-            print("Не удалось загрузить страницу", CATALOG_CONFIGURATORS_URL)
-            return []
-        html = BeautifulSoup(response.text, "lxml")
-        total_pages = get_pages_amount(html)
+        print("Получение списка серверов")
+        servers_url = CATALOG_CONFIGURATORS_URL + PAGEN
+        current_page = total_pages = 1
+        while current_page <= total_pages:
+            print(f"\tСтраница {current_page} - получение")
+            req = requests_try_to_get_max_5x(servers_url + str(current_page), HEADERS)
+            if req is None:
+                print("Не удалось загрузить страницу", servers_url + str(current_page))
+                continue
 
-        # Загрузить каждую страницу серверов
-        for page in range(1, total_pages + 1):
-            print(f"\tСтраница {page} - получение")
-            time.sleep(1.5)
-            if page != 1:
-                url = CATALOG_CONFIGURATORS_URL + PAGEN + str(page)
-                response = requests_try_to_get_max_5x(url, HEADERS)
-                if response is None:
-                    print("Не удалось загрузить страницу", url)
-                    continue
-                html = BeautifulSoup(response.text, "lxml")
+            soup = BeautifulSoup(req.text, "lxml")
+            if current_page == 1:
+                total_pages = Catalog.get_pages_amount(soup)
 
-            body = html.find("body")
-            products = body.find("div", class_="products").find_all("div", class_="product card")
+            products = soup.body.find("div", class_="products").find_all(class_="product-item", recursive=False)
+
             for item in products:
-                item_header = item.find(class_="card-title")
-                name = format_name(item_header.text.strip())
+                a_tag = item.find_all("a")[-1]
+                name = a_tag.text.strip()
+                name = format_name(name)
 
                 try:
-                    url = item_header.find("a")
-                    url = url.attrs.get("href", None).strip()
+                    url = a_tag.attrs.get("href", None).strip()
                 except Exception as e:
+                    print("\tОшибка в получении ссылки на сервер")
                     print(e)
                     url = None
 
                 try:
-                    price = item.find(class_="card-footer").text.strip()
-                    price = format_price(price)
+                    price_tag = item.find(class_="prices")
+                    price = re.sub(r"\s+", "", price_tag.text.strip())
+                    price = re.match(r"\d+(?:[.,]\d+)?", price)
+                    price = format_price(price.group())
                 except Exception as e:
-                    print(e)
+                    print(f"\t!Не удалось получить цену товара: {name}\n\t\t{e}")
                     price = 0
 
                 server = Server(
@@ -201,10 +189,24 @@ class Catalog(AbstractCatalog):
 
                 servers.append(server)
 
+            current_page += 1
+            # Задержка в конце запроса
+            time.sleep(Catalog.delay)
+
         print()
-        sort_servers_by_category_and_name(servers)
+        sort_products_by_category_and_name(servers)
         for server in servers:
             print(server)
 
         print("\nНайдено серверов:", len(servers))
         return servers
+
+    @staticmethod
+    def get_pages_amount(soup: BeautifulSoup):
+        pagination = soup.find("ul", class_="paginator")
+        if pagination is None:
+            return 1
+
+        pages = pagination.find_all(lambda tag: tag.name == "a" and str(tag.text).strip().isnumeric())
+        pages_digits = [int(page.text.strip()) for page in pages]
+        return max(pages_digits)
