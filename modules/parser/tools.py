@@ -409,6 +409,8 @@ def prettify_ram(comp, nord_server=False):
         elif nord_server:  # ТОЛЬКО ДЛЯ NORD-SERVER
             ddr = "3"
             comp.name += f" DDR{ddr}"
+        else:
+            ddr = "?"
     else:
         ddr = str(sub_not_digits(ddr))
 
