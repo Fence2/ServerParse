@@ -274,6 +274,13 @@ def print_dict(item: dict, offset=''):
     print()
 
 
+def products_group_by_category(products: list) -> dict:
+    result = dict()
+    for p in products:
+        result[p.category] = result.get(p.category, 0) + 1
+    return result
+
+
 def requests_try_to_get_max_5x(url: str, headers: dict, session=None):
     tries = 0
     while tries < 5:
