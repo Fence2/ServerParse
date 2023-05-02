@@ -19,7 +19,7 @@ def main():
             "\n"
         )
         choice = input().strip()
-        # choice = "6"  # TODO UNDO
+        # choice = "6"  # TOD O UNDO
 
         if re.fullmatch(r"\d+", choice):
             break
@@ -52,6 +52,7 @@ def main():
             from sale_server.constants import CATEGORIES, CONFIG_CATEGORIES
             parser_name = "Sale_Server"
         case _:
+            print("Введен неправильный номер. Попробуйте заново.")
             return
 
     folder_to_save = Path.cwd() / f'Data/{parser_name}/{tools.get_today_day_and_month()}/'
@@ -98,17 +99,6 @@ def main():
     )
 
     print(f"Завершён парсинг {parser_name}. Проверьте консоль!")
-
-    # try:
-    #     from win10toast import ToastNotifier
-    #     toast = ToastNotifier()
-    #     toast.show_toast(
-    #         "Окончание парсинг",
-    #         f"Завершён парсинг {parser_name}. Проверьте консоль!",
-    #         duration=8
-    #     )
-    # except Exception:
-    #     pass
 
 
 if __name__ == '__main__':

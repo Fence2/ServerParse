@@ -14,6 +14,7 @@ class Patterns:
     INT = re.compile(r"\d+")
 
     MULTIPLE = re.compile(r"^(\s*[x×х]+\s*)(\d{1,2})\D|^\d{1,2}(\s*([x×х]+|(шт|pc)\.?)\s*)", flags=re.I)
+    FORM_FACTOR = re.compile(r"[SL]FF\b", flags=re.I)
 
     class CPU:
         brand = re.compile(r"INTEL|AMD", flags=re.I)
@@ -139,11 +140,15 @@ def add_info_to_trays_and_rails(category: str, comp, server):
     comp_model = search_from_pattern(Patterns.SERVER.model, comp.name)
     comp_gen = search_from_pattern(Patterns.SERVER.gen, comp.name)
     comp_units = search_from_pattern(Patterns.SERVER.units, comp.name)
+    comp_trays = search_from_pattern(Patterns.FORM_FACTOR, comp.name)
+
+    server_trays = search_from_pattern(Patterns.FORM_FACTOR, server.name)
 
     brand_ok = server.brand is not None and comp_brand is None
     model_ok = server.model is not None and comp_model is None
     gen_ok = server.generation is not None and comp_gen is None
     units_ok = server.units is not None and comp_units is None
+    form_factor_ok = server_trays is not None and comp_trays is None
 
     if "рельсы" in category.lower():
         if brand_ok and server.brand not in comp.name.upper():
@@ -154,6 +159,8 @@ def add_info_to_trays_and_rails(category: str, comp, server):
             comp.name += f" {server.generation}"
         if units_ok:
             comp.name += f" {server.units}"
+        if form_factor_ok:
+            comp.name += f" {server_trays}"
 
     if "салазки" in category.lower() and comp_is_adapter is None:
         if brand_ok and server.brand not in comp.name.upper():
@@ -256,8 +263,8 @@ def get_server_category(server) -> int:
     return result
 
 
-def sort_products_by_category_and_name(servers):
-    servers.sort(key=lambda server: (server.category, server.name))
+def sort_products_by_category_and_name(products):
+    products.sort(key=lambda item: (item.category, item.name))
 
 
 def print_dict(item: dict, offset=''):

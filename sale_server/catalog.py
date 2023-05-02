@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup, Tag
 
 
 class Catalog(AbstractCatalog):
-    delay = 1.5
+    delay = 3
 
     def __init__(self, webdriver_path: str = None, launch=False):
         super().__init__(webdriver_path, launch)
@@ -33,10 +33,10 @@ class Catalog(AbstractCatalog):
             soup = BeautifulSoup(html.text, "lxml")
             categories_html = soup.body.find("div", class_="category-menu").find_all(_valid_category)
             for category_html in categories_html:
-                if len(category_html.attrs.get('href', '')) > 1:
+                if len(category_html.attrs.get('href', '').strip()) > 1:
                     category_name = category_html.text.strip()
                     category_name = normalize_category_name(category_name)
-                    category_url = category_html.attrs['href']
+                    category_url = category_html.attrs['href'].strip()
                     i = 2
                     correct_name = category_name
                     while correct_name in categories:
@@ -73,7 +73,6 @@ class Catalog(AbstractCatalog):
         """
 
         components = list()
-        # return components  # TODO DELETE BEFORE RELEASE
 
         categories = Catalog.get_components_categories()
 
@@ -81,6 +80,9 @@ class Catalog(AbstractCatalog):
         for category_name, category_url in categories.items():
             print("Получение комплектующих категории:", category_name)
             category_url = category_url + PAGEN
+            if not category_url.startswith("http"):
+                category_url = MAIN_URL + (category_url[1:] if category_url[0] in "/\\" else category_url)
+
             category_total = 0
             current_page = total_pages = 1
             while current_page <= total_pages:
@@ -94,36 +96,43 @@ class Catalog(AbstractCatalog):
                 if current_page == 1:
                     total_pages = Catalog.get_pages_amount(soup)
 
-                products = soup.body.find("div", class_="products").find_all(class_="product-item", recursive=False)
+                try:
+                    products = soup.body.find("div", class_="products").find_all(class_="product-item", recursive=False)
+                except Exception as e:
+                    print("Ошибка: Не найдена страница с товарами:", e)
+                    products = []
 
                 # Пройтись по каждому товару и сохранить информацию о нём
                 for item in products:
-                    item_category = category_name
-                    name = item.find_all("a")[-1].text.strip()
-                    name = format_name(name)
-                    if "кэш" in category_name.lower():
-                        is_cache = name[0].isnumeric() and "кэш" in name.lower()
-                        if is_cache:
-                            item_category = "Кэш-память"
-
                     try:
-                        price_tag = item.find(class_="prices")
-                        price = re.sub(r"\s+", "", price_tag.text.strip())
-                        price = re.match(r"\d+(?:[.,]\d+)?", price)
-                        price = format_price(price.group())
+                        item_category = category_name
+                        name = item.find_all("a")[-1].text.strip()
+                        name = format_name(name)
+                        if "кэш" in category_name.lower():
+                            is_cache = name[0].isnumeric() and "кэш" in name.lower()
+                            if is_cache:
+                                item_category = "Кэш-память"
+
+                        try:
+                            price_tag = item.find(class_="prices")
+                            price = re.sub(r"\s+", "", price_tag.text.strip())
+                            price = re.match(r"\d+(?:[.,]\d+)?", price)
+                            price = format_price(price.group())
+                        except Exception as e:
+                            print(f"\t!Не удалось получить цену товара: {name}\n\t\t{e}")
+                            price = 0
+
+                        comp = Component(
+                            category=item_category,
+                            name=name,
+                            new=new_or_ref(name),
+                            price=price
+                        )
+
+                        components.append(comp)
+                        category_total += 1
                     except Exception as e:
-                        print(f"\t!Не удалось получить цену товара: {name}\n\t\t{e}")
-                        price = 0
-
-                    comp = Component(
-                        category=item_category,
-                        name=name,
-                        new=new_or_ref(name),
-                        price=price
-                    )
-
-                    components.append(comp)
-                    category_total += 1
+                        print("Ошибка при получении информации о комплектующем", e)
 
                 current_page += 1
                 # Задержка в конце запроса
@@ -155,39 +164,46 @@ class Catalog(AbstractCatalog):
             if current_page == 1:
                 total_pages = Catalog.get_pages_amount(soup)
 
-            products = soup.body.find("div", class_="products").find_all(class_="product-item", recursive=False)
+            try:
+                products = soup.body.find("div", class_="products").find_all(class_="product-item", recursive=False)
+            except Exception as e:
+                print("Ошибка: Не найдена страница с товарами:", e)
+                products = []
 
             for item in products:
-                a_tag = item.find_all("a")[-1]
-                name = a_tag.text.strip()
-                name = format_name(name)
-
                 try:
-                    url = a_tag.attrs.get("href", None).strip()
+                    a_tag = item.find_all("a")[-1]
+                    name = a_tag.text.strip()
+                    name = format_name(name)
+
+                    try:
+                        url = a_tag.attrs.get("href", None).strip()
+                    except Exception as e:
+                        print("\tОшибка в получении ссылки на сервер")
+                        print(e)
+                        url = None
+
+                    try:
+                        price_tag = item.find(class_="prices")
+                        price = re.sub(r"\s+", "", price_tag.text.strip())
+                        price = re.match(r"\d+(?:[.,]\d+)?", price)
+                        price = format_price(price.group())
+                    except Exception as e:
+                        print(f"\t!Не удалось получить цену товара: {name}\n\t\t{e}")
+                        price = 0
+
+                    server = Server(
+                        name=name,
+                        new=new_or_ref(name),
+                        card_price=price,
+                        config_url=url
+                    )
+
+                    server.get_specs_from_name()
+
+                    servers.append(server)
                 except Exception as e:
-                    print("\tОшибка в получении ссылки на сервер")
-                    print(e)
-                    url = None
-
-                try:
-                    price_tag = item.find(class_="prices")
-                    price = re.sub(r"\s+", "", price_tag.text.strip())
-                    price = re.match(r"\d+(?:[.,]\d+)?", price)
-                    price = format_price(price.group())
-                except Exception as e:
-                    print(f"\t!Не удалось получить цену товара: {name}\n\t\t{e}")
-                    price = 0
-
-                server = Server(
-                    name=name,
-                    new=new_or_ref(name),
-                    card_price=price,
-                    config_url=url
-                )
-
-                server.get_specs_from_name()
-
-                servers.append(server)
+                    print("Ошибка при получении информации о комплектующем", e)
 
             current_page += 1
             # Задержка в конце запроса

@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 
 class Configurator(AbstractConfigurator):
-    delay = 1.5
+    delay = 3
 
     def __init__(self, webdriver_path: str = None, launch=False):
         super().__init__(webdriver_path, launch)
@@ -18,30 +18,48 @@ class Configurator(AbstractConfigurator):
         servers_with_config = list()
 
         good_servers = [s for s in servers if s.category < 4]
+        random.shuffle(good_servers)
         for count, server in enumerate(good_servers):
             print(f"Осталось получить: {len(good_servers) - count} конфигураторов")
             if server.config_url is None:
+                print("Пустой URL сервера")
                 continue
 
-            print("Получение -", server.name)
+            print(f"Получение - {server.name} - {server.config_url}")
             response = requests_try_to_get_max_5x(server.config_url, HEADERS)
             if response is None:
                 print("Не удалось загрузить страницу", server.config_url)
                 continue
 
             soup = BeautifulSoup(response.text, "lxml")
-            form = soup.body.find("table", class_="product-specifications")
 
-            price = soup.find("meta", attrs={"itemprop": "price", "content": True}).attrs.get("content")
-            price = format_price(price)
+            try:
+                form = soup.body.find("table", class_="product-specifications")
+            except Exception as e:
+                print("Ошибка в получении формы конфигуратора сервера", e)
 
-            server.config_price = price
-            print(f"\t{price}")
+            try:
+                price = soup.find("meta", attrs={"itemprop": "price", "content": True}).attrs.get("content")
+                price = format_price(price)
 
-            categories_html = Configurator.get_config_components_categories_html(form)
+                server.config_price = price
+            except Exception as e:
+                print("Ошибка в получении цены сервера", e)
+                price = 0
 
-            cfg_components = Configurator.get_components_from_categories(categories_html, server)
-            server.components = cfg_components
+            try:
+                print(f"\t{price}")
+
+                categories_html = Configurator.get_config_components_categories_html(form)
+            except Exception as e:
+                print("Ошибка в получении категорий конфигуратора сервера", e)
+
+            try:
+                cfg_components = Configurator.get_components_from_categories(categories_html, server)
+                server.components = cfg_components
+            except Exception as e:
+                print("Ошибка в получении комплектующих конфигуратора сервера", e)
+                cfg_components = []
 
             servers_with_config.append(server)
 
@@ -70,29 +88,33 @@ class Configurator(AbstractConfigurator):
         tbody = config_soup.find("tbody")
         table_items = tbody.find_all("tr", recursive=False)
         for row in table_items:
-            columns = row.find_all("td", recursive=False)
-            name_tag = columns[0]
-            name = name_tag.text.strip()
-            name = format_name(name)
-            name = normalize_category_name(name)
+            try:
+                columns = row.find_all("td", recursive=False)
+                name_tag = columns[0]
+                name = name_tag.text.strip()
+                name = format_name(name)
+                name = normalize_category_name(name)
 
-            cat_tag = columns[1]
-            category_options = cat_tag.find_all("option")
-            amount = 0
-            if len(category_options[0].text.strip()):
-                amount = 1
-                try:
-                    if len(columns) > 2:
-                        amount_tag = columns[2]
-                        amount_text = amount_tag.find("select")
-                        if amount_text is not None:
-                            amount_text = amount_text.find("option").text.strip()
-                            if len(amount_text) and amount_text.isnumeric():
-                                amount = int(amount_text)
-                except Exception as e:
-                    pass
-            else:
-                del category_options[0]
+                cat_tag = columns[1]
+                category_options = cat_tag.find_all("option")
+                amount = 0
+                if len(category_options[0].text.strip()):
+                    amount = 1
+                    try:
+                        if len(columns) > 2:
+                            amount_tag = columns[2]
+                            amount_text = amount_tag.find("select")
+                            if amount_text is not None:
+                                amount_text = amount_text.find("option").text.strip()
+                                if len(amount_text) and amount_text.isnumeric():
+                                    amount = int(amount_text)
+                    except Exception as e:
+                        pass
+                else:
+                    del category_options[0]
+            except Exception as e:
+                print("Ошибка во время получении категории:", e)
+                continue
 
             categories[name] = dict(options=category_options, checked_amount=amount)
 
