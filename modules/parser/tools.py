@@ -59,13 +59,13 @@ class Patterns:
         eng_RUS = re.compile(r"[a-z][а-яё]", flags=re.I)
 
     class CATEGORY:
-        cpu = re.compile(r"\bcpu\b|процессор", flags=re.I)
+        cpu = re.compile(r"(?!.*вентилят)(.*\bcpu\b|.*\bпроцессор)(?!.*вентилят)", flags=re.I)
         ram = re.compile(
-            r"(?!.*контрол+[а-яё]+|.*к[эе]ш|.батар)(.*оперативн[а-яё]+\s+памят[а-яё]+|.*\bram\b)(?!.*контрол+[а-яё]+|.*к[эе]ш|.батар)",
+            r"(?!.*контрол+[а-яё]+|.*к[эе]ш|.*батар)(.*оперативн[а-яё]+\s+памят[а-яё]+|.*\bram\b)(?!.*контрол+[а-яё]+|.*к[эе]ш|.*батар)",
             flags=re.I)
         hdd = re.compile(r"\bкорзин[\wа-яё] на|hdd", flags=re.I)
         trays = re.compile(r"\bсалазк[\wа-яё]", flags=re.I)
-        raid = re.compile(r"(\braid\b|\bр[еэ][ий]д\b)(?!.*к[эе]ш|.батар)", flags=re.I)
+        raid = re.compile(r"(?!.*к[эе]ш|.*батар)(.*\braid\b|.*\bр[еэ][ий]д\b)(?!.*к[эе]ш|.*батар)", flags=re.I)
         network = re.compile(r"сетев[\wа-яё]+ карт[\wа-яё]|network", flags=re.I)
         rails = re.compile(r"монтаж и подключение|\bрельс|креплен[а-яё]+ для сервер[а-яё]* в стойк[а-яё]+", flags=re.I)
         idrac = re.compile(r"удал[её]нн[\wа-яё]+\s+(\bуправлен[\wа-яё]+|\bадминистриров[а-яё]+)", flags=re.I)
@@ -98,7 +98,7 @@ def search_from_pattern(pattern: re.Pattern, search_str: str) -> str | None:
 def normalize_category_name(category_name: str) -> str:
     i = 1
     for pattern, correct_str in Patterns.CATEGORY.all_ru.items():
-        if i not in (2, 5):
+        if i not in (1, 2, 5):
             if pattern.search(category_name) is not None:
                 return correct_str
         else:
@@ -267,6 +267,8 @@ def sort_products_by_category_and_name(products):
     products.sort(key=lambda item: (item.category, item.name))
 
 
+
+
 def print_dict(item: dict, offset=''):
     """
     Функция красивого вывода содержимого словаря с подсчётом уникальных значений
@@ -288,7 +290,7 @@ def products_group_by_category(products: list) -> dict:
     return result
 
 
-def requests_try_to_get_max_5x(url: str, headers: dict, session=None):
+def requests_try_to_get_max_5x(url: str, headers: dict = None, session=None):
     tries = 0
     while tries < 5:
         if tries:
@@ -296,9 +298,9 @@ def requests_try_to_get_max_5x(url: str, headers: dict, session=None):
         response = None
         try:
             if session is None:
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers) if headers is not None else requests.get(url)
             else:
-                response = session.get(url, headers=headers)
+                response = session.get(url, headers=headers) if headers is not None else session.get(url)
         except requests.exceptions.ConnectTimeout:
             print("Не удалось загрузить страницу -", url)
         if response is not None and response.ok:
