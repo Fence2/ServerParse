@@ -16,10 +16,11 @@ def main():
             "\t4 - ServerGate.ru\n"
             "\t5 - Nord-Server.ru\n"
             "\t6 - Sale-Server.ru\n"
+            "\t7 - shop.nag.ru (Только комплектующие)\n"
             "\n"
         )
         choice = input().strip()
-        # choice = "6"  # TOD O UNDO
+        # choice = "7"  # TODO_ UNDO
 
         if re.fullmatch(r"\d+", choice):
             break
@@ -51,6 +52,10 @@ def main():
             from sale_server import Parser, catalog, configurator, data_prettify  # noqa
             from sale_server.constants import CATEGORIES, CONFIG_CATEGORIES
             parser_name = "Sale_Server"
+        case "7":
+            from shop_nag import Parser, catalog, configurator, data_prettify  # noqa
+            from shop_nag.constants import CATEGORIES, CONFIG_CATEGORIES
+            parser_name = "Shop_Nag"
         case _:
             print("Введен неправильный номер. Попробуйте заново.")
             return
@@ -86,6 +91,8 @@ def main():
         case "5":
             parser = Parser(folder_to_save)
         case "6":
+            parser = Parser(folder_to_save)
+        case "7":
             parser = Parser(folder_to_save)
         case _:
             return
