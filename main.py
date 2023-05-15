@@ -93,7 +93,11 @@ def main():
         case "6":
             parser = Parser(folder_to_save)
         case "7":
-            parser = Parser(folder_to_save)
+            parser = Parser(
+                folder_to_save,
+                webdriver_path,
+                catalog_selenium=True
+            )
         case _:
             return
 
