@@ -1,4 +1,4 @@
-MAIN_URL = "https://sale-server.ru/"
+MAIN_URL = "https://sale-server.ru"
 CATALOG_COMPONENTS_URL = MAIN_URL + "/komplektuyushchie-k-serveram/products"
 CATALOG_CONFIGURATORS_URL = MAIN_URL + "/konfigurator/products"
 

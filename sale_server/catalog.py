@@ -81,7 +81,7 @@ class Catalog(AbstractCatalog):
             print("Получение комплектующих категории:", category_name)
             category_url = category_url + PAGEN
             if not category_url.startswith("http"):
-                category_url = MAIN_URL + (category_url[1:] if category_url[0] in "/\\" else category_url)
+                category_url = MAIN_URL + (category_url if category_url[0] in "/\\" else "/" + category_url)
 
             category_total = 0
             current_page = total_pages = 1
