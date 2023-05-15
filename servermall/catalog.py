@@ -40,13 +40,13 @@ class Catalog(AbstractCatalog):
     def get_servers() -> list[Server]:
         servers = list()
 
-        Catalog.driver = selenium_try_to_get_max_5x(Catalog.driver, MAIN_URL, True)
+        Catalog.driver = selenium_try_to_get_max_5x(Catalog.driver, MAIN_URL)
         time.sleep(Catalog.delay)
 
         random.shuffle(RANDOM_URL)
 
         for url in RANDOM_URL[:random.randint(2, 5)]:
-            Catalog.driver = selenium_try_to_get_max_5x(Catalog.driver, url, True)
+            Catalog.driver = selenium_try_to_get_max_5x(Catalog.driver, url)
             time.sleep(Catalog.delay)
 
         catalog_urls = [CATALOG_CONFIGURATORS_HP_URL, CATALOG_CONFIGURATORS_DELL_URL]
