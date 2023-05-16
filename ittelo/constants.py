@@ -1,14 +1,14 @@
 MAIN_URL = "https://www.ittelo.ru"
-CATALOG_COMPONENTS_URL = MAIN_URL + "/partsittelo"
-CATALOG_CONFIGURATORS_URL = MAIN_URL + "/server"
+CATALOG_COMPONENTS_URL = MAIN_URL + "/partsittelo/"
+CATALOG_CONFIGURATORS_URL = MAIN_URL + "/server/"
 
 
 PAGEN = "?PAGEN_1="  # noqa
 
 CATEGORIES = {
-    'Процессоры': "cpu",
-    'Оперативная память': "ram",
-    # 'Сетевая карта': "network",
+    "Процессоры": "cpu",
+    "Оперативная память": "ram",
+    # "Сетевые карты": "network",
     'RAID-контроллер': "raid",
     "Рельсы": "rails",
     "Салазки": "tray",
@@ -35,5 +35,6 @@ HEADERS = {
     "sec-fetch-mode": "navigate",
     "sec-fetch-site": "same-origin",
     "sec-fetch-user": "?1",
-    "upgrade-insecure-requests": "1"
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 }

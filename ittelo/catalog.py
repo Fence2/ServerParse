@@ -25,19 +25,8 @@ class Catalog(AbstractCatalog):
             ...
         }
         """
-        print("Получение категорий комплектующих...", end="")
+        print("Получение категорий комплектующих - ", end="")
         categories: dict[str, str] = dict()
-
-        category_normal_name = {
-            r"\bcpu\b|процессор": "Процессоры",
-            r"(.*оперативн[а-яё]+\s+памят[а-яё]+|.*\bram\b)(?!.*контрол+[а-яё]+|.*к[эе]ш)": "Оперативная память",
-            r"корзин[\wа-яё] на|hdd": "Жёсткие диски",
-            r"салазк[\wа-яё]": "Салазки",
-            r"raid|р[еэ][ий]д": "RAID-контроллер",
-            r"сетев[\wа-яё]+ карт[\wа-яё]|network": "Сетевая карта",
-            r"монтаж и подключение|рельс|креплен[а-яё]+ для сервер[а-яё]+ в стойк[а-яё]+": "Рельсы",
-            r"удал[её]нн[\wа-яё]+ управлен[\wа-яё]+": "Удалённое управление"
-        }
 
         catalog_html = requests_try_to_get_max_5x(CATALOG_COMPONENTS_URL, headers=HEADERS)
         soup = BeautifulSoup(catalog_html.text, "lxml")
@@ -48,18 +37,23 @@ class Catalog(AbstractCatalog):
         for card in categories_cards:
             a_tag = card.find("a")
             if a_tag:
-                link = a_tag.attrs.get("href", '') or ''
-                if link:
-                    link = MAIN_URL + link
-                    category_name = a_tag.find(class_="category_card__name").string.strip()
-                    lower_name = category_name.lower()
-                    for pattern, normal_name in category_normal_name.items():
-                        if re.search(pattern, lower_name, flags=re.I) is not None:
-                            category_name = normal_name
-                            break
-                    categories[category_name] = link
+                category_url = a_tag.attrs.get("href", '') or ''
+                if category_url:
+                    if not category_url.startswith("http"):
+                        category_url = MAIN_URL + (category_url if category_url[0] in "/\\" else f"/{category_url}")
 
-        print(".Успех\n")
+                    category_name = a_tag.find(class_="category_card__name").string.strip()
+                    category_name = normalize_category_name(category_name)
+
+                    i = 2
+                    correct_name = category_name
+                    while correct_name in categories:
+                        correct_name = f"{category_name}_{i}"
+                        i += 1
+
+                    categories[correct_name] = category_url
+
+        print(f"Успех\nПолучено категорий: {len(categories)}\n")
 
         return categories
 
@@ -80,6 +74,7 @@ class Catalog(AbstractCatalog):
         categories = Catalog.get_components_categories()
 
         for category_name, category_url in categories.items():
+            category_components = list()
             original_category = category_name
             total_in_category = 0
             print("Категория:", category_name)
@@ -90,9 +85,16 @@ class Catalog(AbstractCatalog):
 
             page_1_soup = BeautifulSoup(page_1_html.text, "lxml").body
 
-            number_of_pages = Catalog.get_number_of_pages(page_1_soup)
+            # number_of_pages = Catalog.get_number_of_pages(page_1_soup)
             page_num = 1
-            for page_url in [category_url + PAGEN + str(page_n) for page_n in range(1, number_of_pages + 1)]:
+            repeated_page = False
+            total_per_page = 30
+
+            for page_url in [category_url + PAGEN + str(page_n) for page_n in range(1, 10)]:
+                if repeated_page:
+                    print("\tВсе комплектующие получены. Страница дубликат")
+                    break
+
                 if page_num == 1:
                     page_soup = page_1_soup
                 else:
@@ -114,6 +116,7 @@ class Catalog(AbstractCatalog):
                             re.search(r"\d+\s*[MGT]B", name, flags=re.I) is None and \
                             re.search("салазк|переходник", name, flags=re.I) is not None:
                         category_name = "Салазки"
+
                     comp = Component(
                         category=category_name,
                         name=name,
@@ -121,12 +124,26 @@ class Catalog(AbstractCatalog):
                         price=price,
                         no_sale_price=no_sale_price,
                     )
+                    short_name = f"{comp.name}|{comp.price}|{comp.new}"
+                    if len(category_components) and \
+                            short_name == f"{category_components[0].name}|{category_components[0].price}|{category_components[0].new}":
+                        repeated_page = True
+                        break
 
-                    components.append(comp)
+                    category_components.append(comp)
                     total_in_category += 1
+                if page_num == 1:
+                    total_per_page = len(category_components)
+                else:
+                    if len(category_components) % total_per_page != 0:
+                        break
                 page_num += 1
             print(f"\t\tВсего: {total_in_category} комплектующих\n")
-        components.sort(key=lambda comp: (comp.category, comp.name, comp.price))
+            components += category_components
+
+        sort_products_by_category_and_name(components)
+        print("Всего получено комплектующих:", len(components))
+        print_dict(products_group_by_category(components), offset="\t")
         return components
 
     @staticmethod
@@ -136,10 +153,13 @@ class Catalog(AbstractCatalog):
         print("\tПолучение страницы 1")
         main_server_page_html = requests_try_to_get_max_5x(CATALOG_CONFIGURATORS_URL, HEADERS)
         main_server_page_soup = BeautifulSoup(main_server_page_html.text, "lxml").body
-        number_of_pages = Catalog.get_number_of_pages(main_server_page_soup)
+        # number_of_pages = Catalog.get_number_of_pages(main_server_page_soup)
         page_num = 1
-
-        for page_link in [CATALOG_CONFIGURATORS_URL + PAGEN + str(page_n) for page_n in range(1, number_of_pages + 1)]:
+        repeated_page = False
+        for page_link in [CATALOG_CONFIGURATORS_URL + PAGEN + str(page_n) for page_n in range(1, 20)]:
+            if repeated_page:
+                print("Все серверы получены. Страница дубликат")
+                break
 
             if page_num == 1:
                 page_soup = main_server_page_soup
@@ -153,6 +173,9 @@ class Catalog(AbstractCatalog):
             items = catalog_wrapper.find_all(class_="catalog_block_item")
             for item in items:
                 url = Catalog.get_url(item)
+                if len(servers) and url == servers[0].config_url:
+                    repeated_page = True
+                    break
                 name, new = Catalog.get_name_and_condition(item)
                 if re.search(
                         r"(?:для|под)\s*1С|(?:до|на).{0,9}пользоват[а-яё]*|до\s*\d+\s*камер|комплект|виртуализ[а-яё]*|(?:начальный|профессиональный)\s*уровень|высоконагруженные",

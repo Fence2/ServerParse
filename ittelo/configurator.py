@@ -100,17 +100,6 @@ class Configurator(AbstractConfigurator):
         """
         categories: dict[str, bs4.ResultSet] = dict()
 
-        category_normal_name = {
-            r"\bcpu\b|процессор": "Процессоры",
-            r"(.*оперативн[а-яё]+\s+памят[а-яё]+|.*\bram\b)(?!.*контрол+[а-яё]+|.*к[эе]ш)": "Оперативная память",
-            r"корзин[\wа-яё] на|hdd": "Жёсткие диски",
-            r"салазк[\wа-яё]": "Салазки",
-            r"raid|р[еэ][ий]д": "RAID-контроллер",
-            r"сетев[\wа-яё] карт[\wа-яё]|network": "Сетевая карта",
-            r"монтаж и подключение|рельс|креплен[а-яё]+( для сервер[а-яё]+)? в стойк[а-яё]+": "Рельсы",
-            r"удал[её]нн[\wа-яё]+ управлен[\wа-яё]+": "Удалённое управление"
-        }
-
         categories_html = config_soup.find_all("div", attrs={"class": "conf-item prop-cont"})
         c_html: bs4.Tag
         for c_html in categories_html:
@@ -122,12 +111,9 @@ class Configurator(AbstractConfigurator):
                 if lower_name == "гарантия":
                     continue
 
-                for pattern, normal_name in category_normal_name.items():
-                    if re.search("Устройство резервного питания", lower_name, flags=re.I) is not None:
-                        break
-                    if re.search(pattern, lower_name, flags=re.I) is not None:
-                        category_name = normal_name
-                        break
+                if re.search("Устройство резервного питания", lower_name, flags=re.I) is None:
+                    category_name = normalize_category_name(category_name)
+
                 items_soup = c_html.find(class_="conf-items")
                 components_soups = items_soup.find_all(class_="conf-row")
             except Exception:
