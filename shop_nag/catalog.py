@@ -124,7 +124,7 @@ class Catalog(AbstractCatalog):
                 try:
                     products = soup.body.find_all("div", class_="setout__item")
                 except Exception as e:
-                    print("Ошибка: Не найдена страница с товарами:", e)
+                    print("!!!!!!!! Ошибка: Не найдена страница с товарами:", e)
                     products = []
 
                 # Пройтись по каждому товару и сохранить информацию о нём
@@ -137,7 +137,7 @@ class Catalog(AbstractCatalog):
                         name = re.sub("хR", "xR", name, flags=re.I)
                         name = format_name(name)
                         bad_category = re.match("батар|адаптер|кэш|модуль|ключ|конденсатор", name, flags=re.I)
-                        if bad_category:
+                        if "RAID" in item_category and bad_category:
                             item_category = "Аксессуары для RAID-контроллеров"
 
                         try:
