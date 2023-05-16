@@ -4,28 +4,32 @@ from pathlib import Path
 
 from modules.parser import tools
 
+PARSERS = {
+    "1": "ServerMall.ru",
+    "2": "ittelo.ru",
+    "3": "WestComp.ru",
+    "4": "ServerGate.ru",
+    "5": "Nord-Server.ru",
+    "6": "Sale-Server.ru",
+    "7": "shop.nag.ru (Только комплектующие)",
+}
+
 
 def main():
     print("Добро пожаловать в парсер комплектующих и серверов!")
     while True:
-        print(
-            "Введите номер конкурента и нажмите Enter\n\n"
-            "\t1 - ServerMall.ru\n"
-            "\t2 - ittelo.ru\n"
-            "\t3 - WestComp.ru\n"
-            "\t4 - ServerGate.ru\n"
-            "\t5 - Nord-Server.ru\n"
-            "\t6 - Sale-Server.ru\n"
-            "\t7 - shop.nag.ru (Только комплектующие)\n"
-            "\n"
-        )
+        print("Введите номер конкурента и нажмите Enter\n")
+        for n, name in PARSERS.items():
+            print(f"\t{n} - {name}")
+        print()
+
         choice = input().strip()
         # choice = "7"  # TODO_ UNDO
 
-        if re.fullmatch(r"\d+", choice):
+        if re.fullmatch(r"\d+", choice) and choice in PARSERS:
             break
         else:
-            print("Ошибка. Нужно ввести только номер:")
+            print("Ошибка. Введен неподходящий номер парсера. Попробуйте еще раз\n")
 
     match choice:
         case "1":
