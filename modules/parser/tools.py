@@ -65,9 +65,9 @@ class Patterns:
             flags=re.I)
         hdd = re.compile(r"\bкорзин[\wа-яё] на|hdd", flags=re.I)
         trays = re.compile(r"\bсалазк[\wа-яё]", flags=re.I)
-        raid = re.compile(r"(?!.*к[эе]ш|.*батар)(.*\braid\b|.*\bр[еэ][ий]д\b)(?!.*к[эе]ш|.*батар)", flags=re.I)
+        raid = re.compile(r"((?!.*к[эе]ш|.*батар)(.*\braid\b|.*\bр[еэ][ий]д\b)(?!.*к[эе]ш|.*батар))|(^Контрол+ер$)", flags=re.I)
         network = re.compile(r"сетев[\wа-яё]+ карт[\wа-яё]|network", flags=re.I)
-        rails = re.compile(r"монтаж и подключение|\bрельс|креплен[а-яё]+ для сервер[а-яё]* в стойк[а-яё]+", flags=re.I)
+        rails = re.compile(r"монтаж и подключение|\bрельс|креплен[а-яё]+( для сервер[а-яё]*)? в стойк[а-яё]+", flags=re.I)
         idrac = re.compile(r"удал[её]нн[\wа-яё]+\s+(\bуправлен[\wа-яё]+|\bадминистриров[а-яё]+)", flags=re.I)
         psu = re.compile(r"\bpsu\b|\bблок[а-яё]*\sпитан[а-яё]*", flags=re.I)
 

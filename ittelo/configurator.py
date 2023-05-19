@@ -159,6 +159,10 @@ class Configurator(AbstractConfigurator):
                           f"{category_name} {str(item)}")
                     continue
 
+                if re.match("ж[её]стк.*\s+диск.*", category_name, flags=re.I):
+                    if name.startswith("Салазк") or name.startswith("Переходн"):
+                        category_name = "Салазки"
+
                 # price
                 price = 0
                 try:
