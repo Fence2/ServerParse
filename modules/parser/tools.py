@@ -579,12 +579,12 @@ def launch_parser(
     from modules.galtsystems_data_processor import components_process, servers_process
     components = _get_components_by_catalog(
         parser,
-        0, 0, 0
+        # 0, 0, 0
     )['components']
 
     parser_data = _get_servers(
         parser,
-        0, 0, 0
+        # 0, 0, 0
     )
     servers, config_components = parser_data['servers'], parser_data['config_components']
     print("Обработка полученных данных...")
