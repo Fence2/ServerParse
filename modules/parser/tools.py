@@ -65,9 +65,11 @@ class Patterns:
             flags=re.I)
         hdd = re.compile(r"\bкорзин[\wа-яё] на|hdd", flags=re.I)
         trays = re.compile(r"\bсалазк[\wа-яё]", flags=re.I)
-        raid = re.compile(r"((?!.*к[эе]ш|.*батар)(.*\braid\b|.*\bр[еэ][ий]д\b)(?!.*к[эе]ш|.*батар))|(^Контрол+ер$)", flags=re.I)
+        raid = re.compile(r"((?!.*к[эе]ш|.*батар)(.*\braid\b|.*\bр[еэ][ий]д\b)(?!.*к[эе]ш|.*батар))|(^Контрол+ер$)",
+                          flags=re.I)
         network = re.compile(r"сетев[\wа-яё]+ карт[\wа-яё]|network", flags=re.I)
-        rails = re.compile(r"монтаж и подключение|\bрельс|креплен[а-яё]+( для сервер[а-яё]*)? в стойк[а-яё]+", flags=re.I)
+        rails = re.compile(r"монтаж и подключение|\bрельс|креплен[а-яё]+( для сервер[а-яё]*)? в стойк[а-яё]+",
+                           flags=re.I)
         idrac = re.compile(r"удал[её]нн[\wа-яё]+\s+(\bуправлен[\wа-яё]+|\bадминистриров[а-яё]+)", flags=re.I)
         psu = re.compile(r"\bpsu\b|\bблок[а-яё]*\sпитан[а-яё]*", flags=re.I)
 
@@ -265,8 +267,6 @@ def get_server_category(server) -> int:
 
 def sort_products_by_category_and_name(products):
     products.sort(key=lambda item: (item.category, item.name))
-
-
 
 
 def print_dict(item: dict, offset=''):
@@ -579,12 +579,12 @@ def launch_parser(
     from modules.galtsystems_data_processor import components_process, servers_process
     components = _get_components_by_catalog(
         parser,
-        # 0, 0, 0
+        0, 0, 0
     )['components']
 
     parser_data = _get_servers(
         parser,
-        # 0, 0, 0
+        0, 0, 0
     )
     servers, config_components = parser_data['servers'], parser_data['config_components']
     print("Обработка полученных данных...")

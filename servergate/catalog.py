@@ -109,7 +109,7 @@ class Catalog(AbstractCatalog):
                 condition = card.find(class_="item-card__name").find("span").text.strip()
                 new = new_or_ref(condition)
             except Exception as e:
-                new = False
+                new = new_or_ref(name)
 
             try:
                 server_specs = card.find(class_='item-card__list').find_all('li', recursive=False)

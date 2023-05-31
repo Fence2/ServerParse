@@ -29,11 +29,14 @@ class CServer:
     gen: str = ""
     trays_amount: str = ""
     trays_form_factor: str = ""
+    new: str = ""
 
     psu: PSU = field(default_factory=PSU)
     raid: RAID = field(default_factory=RAID)
     network: NETWORK = field(default_factory=NETWORK)
     idrac: IDRAC = field(default_factory=IDRAC)
+
+
 
 
 def get_servers_specs_keys(all_servers):
@@ -44,7 +47,8 @@ def get_servers_specs_keys(all_servers):
         server.key = CServer(
             brand=server.brand,
             model=server.model,
-            gen=str(sub_not_digits(server.generation)) if server.generation is not None else ''
+            gen=str(sub_not_digits(server.generation)) if server.generation is not None else '',
+            new='Y' if server.new else ''
         )
         if "SFF" in server.name.upper() or "2.5" in server.name:
             server.key.trays_form_factor = "SFF"
@@ -66,6 +70,7 @@ def get_gs_server_item(gs_server):
         gen=gs_server.get('Generation', ''),
         trays_amount=gs_server.get('[Slots] Quantity', ''),
         trays_form_factor=gs_server.get('[Slots] Form-factor', ''),
+        new=gs_server.get('New (Y/N)', '')
     )
 
     if server_item.brand.lower() == "supermicro":
@@ -91,6 +96,8 @@ def get_server_name(server_item: CServer, gs_servers_final: dict):
         server_name.append(f"G{server_item.gen}")
     if len(server_item.trays_amount):
         server_name.append(f"{server_item.trays_amount}{server_item.trays_form_factor}")
+    if len(server_item.new):
+        server_name.append(f"NEW")
 
     server_name = " ".join([i for i in server_name if len(i.strip())])
 
@@ -418,7 +425,7 @@ def configure_servers(all_servers, server_options):
         parser_server = None
         for server in all_servers:
             good = list()
-            for attr in get_attrs(CServer)[:5]:
+            for attr in get_attrs(CServer)[:6]:
                 try:
                     server_value = getattr(server.key, attr)
                 except AttributeError:

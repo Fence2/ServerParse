@@ -221,7 +221,7 @@ class Catalog(AbstractCatalog):
     @staticmethod
     def get_name_and_condition(item):
         try:
-            condition = item.find(class_="catalog_block_item_lable_by").string.strip()  # noqa
+            condition = item.find(class_="catalog_block_item_lable_by").text.strip()  # noqa
             new = new_or_ref(condition)
         except AttributeError:
             new = None

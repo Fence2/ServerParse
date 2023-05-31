@@ -58,7 +58,7 @@ class Server:
     units: str = None
 
     def __repr__(self) -> str:
-        result = f"{self.category}: {self.name} - " \
+        result = f"{self.category}: {self.name}{' NEW' if self.new else ''} - " \
                  f"{str(self.card_price if not self.config_price else self.config_price)}"
 
         if self.no_sale_card_price != 0:
@@ -112,6 +112,7 @@ class SeleniumSupport(ABC):
             options.add_argument("window-size=1800,1000")
             try:
                 SeleniumSupport.driver = webdriver.Chrome(service=Service(webdriver_path), options=options)
+                SeleniumSupport.driver.get("https://www.google.com/?hl=RU")
             except Exception as e:
                 print("\nERROR\nОбновите ваш chromedriver драйвер!\nERROR\n")
                 print(e)
