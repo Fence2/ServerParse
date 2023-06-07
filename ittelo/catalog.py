@@ -177,12 +177,6 @@ class Catalog(AbstractCatalog):
                     repeated_page = True
                     break
                 name, new = Catalog.get_name_and_condition(item)
-                if re.search(
-                        r"(?:для|под)\s*1С|(?:до|на).{0,9}пользоват[а-яё]*|до\s*\d+\s*камер|комплект|виртуализ[а-яё]*|(?:начальный|профессиональный)\s*уровень|высоконагруженные",
-                        name,
-                        flags=re.I
-                ) is not None:
-                    continue
                 price = Catalog.get_price(item, name)
                 no_sale_price = Catalog.get_no_sale_price(item)
                 server = Server(
@@ -193,6 +187,12 @@ class Catalog(AbstractCatalog):
                     config_url=url,
                 )
                 server.get_specs_from_name()
+                if re.search(
+                        r"(?:для|под)\s*1С|(?:до|на).{0,9}пользоват[а-яё]*|до\s*\d+\s*камер|комплект|виртуализ[а-яё]*|(?:начальный|профессиональный)\s*уровень|высоконагруженные",
+                        name,
+                        flags=re.I
+                ) is not None:
+                    server.category = 7
                 servers.append(server)
             page_num += 1
 
