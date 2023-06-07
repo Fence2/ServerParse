@@ -548,8 +548,8 @@ def _get_servers_by_category(servers, nds):
                 comp.no_sale_price = int(comp.no_sale_price * 1.1)
 
     result = {
-        'servers': [server for server in servers if server.category < 4 and server.config_price > 0],
-        'other_servers': [server for server in servers if server.category > 3 and server.config_price > 0]
+        'servers': [server for server in servers if server.category < 4],
+        'other_servers': [server for server in servers if server.category > 3]
     }
 
     return result
@@ -574,19 +574,20 @@ def launch_parser(
         folder_to_save,
         categories,
         config_categories,
-        nds=False
+        nds=False,
+        get_only_catalog=False
 ):
     from modules.galtsystems_data_processor import components_process, servers_process
     components = _get_components_by_catalog(
         parser,
         # 0, 0, 0
     )['components']
-
     parser_data = _get_servers(
         parser,
-        # 0, 0, 0
+        servers_configs=not get_only_catalog
     )
     servers, config_components = parser_data['servers'], parser_data['config_components']
+
     print("Обработка полученных данных...")
     components_to_process = _get_items_by_category(components, categories, nds)
     config_components_to_process = _get_items_by_category(config_components, config_categories, nds)

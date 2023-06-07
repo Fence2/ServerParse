@@ -263,6 +263,7 @@ class MainParser:
                     pickle.dump(config_components, file)
                 print("...Успешное сохранение!\n")
             else:
+                servers_with_configs = servers
                 if Path(self.servers_with_conf_list_bin).is_file():
                     with open(self.servers_with_conf_list_bin, "rb") as file:
                         servers_with_configs = pickle.load(file)

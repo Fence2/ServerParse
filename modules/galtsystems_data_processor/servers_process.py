@@ -1,7 +1,8 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from modules.parser.tools import get_today_full_date_str, format_excel_columns_width
+from modules.parser.tools import get_today_full_date_str, format_excel_columns_width, search_from_pattern, Patterns, \
+    sub_not_digits
 
 
 def process_servers(
@@ -28,7 +29,7 @@ def process_servers(
     # Первый лист: Сводная инфо по хорошим серверам, нужным нашей компании
     for k, v in gs_servers.items():
         ws_gs.append(["Сервер", k, v])
-    ws_gs = format_excel_columns_width(ws_gs)
+    format_excel_columns_width(ws_gs)
 
     # Остальные листы
 
@@ -53,15 +54,44 @@ def process_servers(
 
     if len(good_cfg):
         write_cfg_to_book(good_cfg, ws_good)
-        ws_good = format_excel_columns_width(ws_good)
+        format_excel_columns_width(ws_good)
     if len(part_cfg):
         ws_part = wb.create_sheet(title="Не полный конфиг")
         write_cfg_to_book(part_cfg, ws_part)
-        ws_part = format_excel_columns_width(ws_part)
+        format_excel_columns_width(ws_part)
     if len(bad_cfg):
         ws_bad = wb.create_sheet(title="Плохой конфиг")
         write_cfg_to_book(bad_cfg, ws_bad)
-        ws_bad = format_excel_columns_width(ws_bad)
+        format_excel_columns_width(ws_bad)
+
+    ws_all_servers = wb.create_sheet(title="Все серверы")
+    ws_all_servers.append([
+        'Title',
+        'Brand',
+        'Model',
+        'Generation',
+        'Units',
+        'Trays amount',
+        'Trays form-factor',
+        'New',
+        'Price'
+    ])
+    for server in servers + other_servers:
+        trays_amount = search_from_pattern(Patterns.SERVER.trays, server.name)
+        trays_form_factor = search_from_pattern(Patterns.FORM_FACTOR, server.name)
+        ws_all_servers.append([
+            server.name,
+            server.brand,
+            server.model,
+            server.generation,
+            server.units,
+            sub_not_digits(trays_amount) if trays_amount is not None else '',
+            trays_form_factor if trays_form_factor is not None else '',
+            server.new,
+            server.card_price
+        ])
+
+    format_excel_columns_width(ws_all_servers)
 
     filename = filename + "_" + get_today_full_date_str() + ".xlsx"
 

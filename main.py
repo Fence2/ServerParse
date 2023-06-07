@@ -18,13 +18,19 @@ PARSERS = {
 def main():
     print("Добро пожаловать в парсер комплектующих и серверов!")
     while True:
-        print("Введите номер конкурента и нажмите Enter\n")
+        print("Введите номер конкурента и нажмите Enter")
+        print("Если необходимо спарсить только каталог, добавьте знак тире возле номера парсера.")
+        print('Примеры корректного выбора парсера: "6", "5-", "-2"\n')
         for n, name in PARSERS.items():
             print(f"\t{n} - {name}")
         print()
 
         choice = input().strip()
+        only_catalog = False
         # choice = "7"  # TODO_ UNDO
+        if "-" in choice:
+            only_catalog = True
+        choice = choice.replace("-", "")
 
         if re.fullmatch(r"\d+", choice) and choice in PARSERS:
             break
@@ -110,7 +116,8 @@ def main():
         folder_to_save=folder_to_save,
         categories=CATEGORIES,
         config_categories=CONFIG_CATEGORIES,
-        nds=nds
+        nds=nds,
+        get_only_catalog=only_catalog
     )
 
     print(f"Завершён парсинг {parser_name}. Проверьте консоль!")
