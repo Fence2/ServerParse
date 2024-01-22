@@ -10,6 +10,7 @@ class Patterns:
     NEW = re.compile(r"Нов[а-яё]{0,2}|New", flags=re.I)
     REF = re.compile(r"Used|Ref(?:urbish?)?(?:ed)?|(?:(?:\()?(?:\(\s)?\bб\s?\\?\/?\s?у\b(?:\s\))?(?:\))?)",  # noqa
                      flags=re.I)
+
     NUMERIC = re.compile(r"\d+(\.\d+)?")
     INT = re.compile(r"\d+")
 
@@ -43,15 +44,15 @@ class Patterns:
 
     class SERVER:
         brand = re.compile(r"Supermicro|HP|DELL", flags=re.I)
-        model = re.compile(r"(?:DL|R)\d{3}\w*", flags=re.I)
+        model = re.compile(r"(?:ML|DL|R|T)\d{2,3}\w*", flags=re.I)
         supermicro_model = re.compile(r"\d{4}\S*", flags=re.I)  # noqa
         gen = re.compile(r"G\d{1,2}\b", flags=re.I)
         units = re.compile(r"\b\dU", flags=re.I)
         trays = re.compile(r"\d{1,2}[ -]*[SL]FF", flags=re.I)
 
     class FULLSERVER:  # noqa
-        HP = re.compile(r"(HP)|(DL\d{3}[pр ])|(G\d)|(\d{1,2}[ -]*[SL]FF)", flags=re.I)
-        DELL = re.compile(r"(DELL)|(R\d{3}\w*)|(\d{1,2}[ -]*[SL]FF)", flags=re.I)
+        HP = re.compile(r"(HP)|((DL|ML)\d{2,3}[pр ])|(G\d)|(\d{1,2}[ -]*[SL]FF)", flags=re.I)
+        DELL = re.compile(r"(DELL)|([RT]\d{2,3}\w*)|(\d{1,2}[ -]*[SL]FF)", flags=re.I)
         SUPERMICRO = re.compile(r"(Supermicro)|(\d{4})", flags=re.I)  # noqa
 
     class MIXED:
@@ -252,10 +253,10 @@ def get_server_category(server) -> int:
 
     match server.brand:
         case 'HP':
-            good_model = server.model is not None and re.search(r"DL3\d\d\D?", server.model, flags=re.I) is not None
+            good_model = server.model is not None and re.search(r"(ML|DL)\d{2,3}\D?", server.model, flags=re.I) is not None
             result = 1 if good_model else 4
         case 'DELL':
-            good_model = server.model is not None and re.search(r"R[567]\d\d\w*", server.model, flags=re.I)
+            good_model = server.model is not None and re.search(r"[RT]\d{2,3}\w*", server.model, flags=re.I)
             result = 2 if good_model else 5
         case 'SUPERMICRO':  # noqa
             result = 3 if re.search(r"\d{4}", server.name, flags=re.I) is not None else 6

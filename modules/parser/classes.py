@@ -111,10 +111,10 @@ class SeleniumSupport(ABC):
             options.page_load_strategy = 'eager'
             options.add_argument("window-size=1800,1000")
             try:
-                SeleniumSupport.driver = webdriver.Chrome(service=Service(webdriver_path), options=options)
+                SeleniumSupport.driver = webdriver.Chrome(service=Service(), options=options)
                 SeleniumSupport.driver.get("https://www.google.com/?hl=RU")
             except Exception as e:
-                print("\nERROR\nОбновите ваш chromedriver драйвер!\nERROR\n")
+                print("\nERROR\nСвяжитесь с разработчиком парсеров!\nERROR\n")
                 print(e)
                 SeleniumSupport.driver = None
                 print()

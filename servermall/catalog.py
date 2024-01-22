@@ -1,3 +1,5 @@
+import re
+
 import bs4
 from modules.parser import *
 from .constants import *
@@ -49,8 +51,16 @@ class Catalog(AbstractCatalog):
             Catalog.driver = selenium_try_to_get_max_5x(Catalog.driver, url)
             time.sleep(Catalog.delay)
 
-        catalog_urls = [CATALOG_CONFIGURATORS_HP_URL, CATALOG_CONFIGURATORS_DELL_URL]
+        catalog_urls = [
+            CATALOG_CONFIGURATORS_HP_URL,
+            CATALOG_CONFIGURATORS_DELL_URL,
+            CATALOG_CONFIGURATORS_HP_URL_2,
+            CATALOG_CONFIGURATORS_DELL_URL_2
+        ]
         random.shuffle(catalog_urls)
+
+        config_urls = set()
+
         for url in catalog_urls:
             catalog = selenium_try_to_get_max_5x(
                 driver=Catalog.driver,
@@ -101,8 +111,8 @@ class Catalog(AbstractCatalog):
                         price = 0
 
                     try:
-                        buttons = card.find_all("a", recursive=False)
-                        for button in buttons[::1]:
+                        buttons = card.find_all("a", attrs={'href': re.compile('^/config/.+', flags=re.I)})
+                        for button in buttons[::-1]:
                             if button.attrs.get("href", "").startswith("/config/"):
                                 config_url = MAIN_URL + button.attrs['href'].strip()
                                 break
@@ -118,11 +128,16 @@ class Catalog(AbstractCatalog):
                         config_url=config_url
                     )
                     server.get_specs_from_name()
+
+                    if len(config_url) and config_url not in config_urls:
+                        config_urls.add(config_url)
+                    else:
+                        server.category = 7
+
                     servers.append(server)
 
                 print(f"\tТоваров на {page} странице:", len(page_servers_cards))
 
         print(f"\nВсего найдено: {len(servers)} серверов\n")
-        servers.sort(key=lambda server: server.card_price)
-        servers.sort(key=lambda server: (server.new, server.category, server.name, server.card_price))
+        sort_products_by_category_and_name(servers)
         return servers

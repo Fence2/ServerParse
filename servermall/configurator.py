@@ -63,17 +63,13 @@ class Configurator(AbstractConfigurator):
                 cfg_components = Configurator.get_components_from_categories(categories_html, server)
                 server.components = cfg_components
 
-                print("    Найдено комплектующих:", len(cfg_components))
-                categories = set(i.category for i in cfg_components)
-                components_dict = {c: 0 for c in categories}
-                for comp in cfg_components:
-                    components_dict[comp.category] += 1
-                print_dict(components_dict, '\t')
+                print("\tНайдено комплектующих:", len(cfg_components))
+                print_dict(products_group_by_category(server.components), offset="\t\t")
+                print()
             except Exception as e:
                 print("Ошибка в получении комплектующих:", e)
 
             servers_with_config.append(server)
-            print()
             time.sleep(Configurator.delay)
 
         Configurator.driver.close()

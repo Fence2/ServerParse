@@ -1,7 +1,9 @@
 MAIN_URL = "https://servermall.ru"
 CATALOG_COMPONENTS_URL = MAIN_URL + "/components/"
-CATALOG_CONFIGURATORS_HP_URL = MAIN_URL + "/config/category_hp/"
-CATALOG_CONFIGURATORS_DELL_URL = MAIN_URL + "/config/category_dell/"
+CATALOG_CONFIGURATORS_HP_URL = MAIN_URL + "/catalog/servers/filter/manufacturer-is-hp/"
+CATALOG_CONFIGURATORS_DELL_URL = MAIN_URL + "/catalog/servers/filter/manufacturer-is-dell/"
+CATALOG_CONFIGURATORS_HP_URL_2 = MAIN_URL + "/config/category_hp/"
+CATALOG_CONFIGURATORS_DELL_URL_2 = MAIN_URL + "/config/category_dell/"
 RANDOM_URL = [
     MAIN_URL + "/about/",
     MAIN_URL + "/contacts/",
@@ -38,12 +40,13 @@ HEADERS = {
     "accept-language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
     'origin': MAIN_URL,
     'referer': MAIN_URL + "/",
-    "sec-ch-ua": "\"Chromium\";v=\"110\", \"Not A(Brand\";v=\"24\"",
+    "sec-ch-ua": """\"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114\"""",
     "sec-ch-ua-mobile": "?0",
     "sec-ch-ua-platform": "\"Windows\"",
     "sec-fetch-dest": "document",
     "sec-fetch-mode": "navigate",
     "sec-fetch-site": "same-origin",
     "sec-fetch-user": "?1",
-    "upgrade-insecure-requests": "1"
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
 }
